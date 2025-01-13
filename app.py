@@ -53,20 +53,21 @@ def login_required(view_function):
             
         if not token:
             print("No valid token found")
+            # For API requests
+            if request.headers.get('Accept') == 'application/json':
+                return jsonify({'error': 'No token provided'}), 401
+            # For browser requests
             return redirect(url_for('login'))
 
         try:
-            decoded_token = auth.verify_id_token(
-                token,
-                check_revoked=False,
-                clock_skew_seconds=60
-            )
-            
+            decoded_token = auth.verify_id_token(token)
             request.user = decoded_token
             return view_function(*args, **kwargs)
             
         except Exception as e:
             print(f"Token verification error: {str(e)}")
+            if request.headers.get('Accept') == 'application/json':
+                return jsonify({'error': str(e)}), 401
             return redirect(url_for('login'))
 
     return wrapped_view
@@ -200,18 +201,14 @@ def api_login():
             'message': str(e)
         }), 500
 
+
 @app.route('/neighbor-dashboard')
 @login_required
 def neighbor_dashboard():
-    print("=== DASHBOARD ROUTE ===")
-    print("1. Route accessed")
-    print("2. User:", request.user if hasattr(request, 'user') else 'No user')
-    try:
-        print("3. Attempting to render template")
-        return render_template('neighbor-dashboard.html')
-    except Exception as e:
-        print("4. Error:", str(e))
-        return str(e), 500
+    # Check if it's an API request or browser request
+    if request.headers.get('Accept') == 'application/json':
+        return jsonify({'status': 'success'})
+    return render_template('neighbor-dashboard.html')
 
 @app.route('/donation-center-dashboard')
 @login_required

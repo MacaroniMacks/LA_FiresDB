@@ -30,6 +30,16 @@
         let marker;
         let selectedLocation;
 
+        // Utility function to show error messages
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            setTimeout(() => {
+                errorEl.style.display = 'none';
+            }, 5000);
+        }
+
         function initMap() {
             // Default to LA area
             const defaultLocation = { lat: 34.0522, lng: -118.2437 };
@@ -49,6 +59,8 @@
         }
 
         function placeMarker(location) {
+            console.log('Placing marker:', location);
+
             if (marker) {
                 marker.setMap(null);
             }
@@ -76,47 +88,70 @@
                     },
                     (error) => {
                         console.error('Error getting location:', error);
-                        alert('Error getting your location. Please pick a location on the map.');
+                        showError('Error getting your location. Please pick a location on the map.');
                     }
                 );
             } else {
-                alert('Geolocation is not supported by this browser. Please pick a location on the map.');
+                showError('Geolocation is not supported by this browser. Please pick a location on the map.');
             }
         });
 
         document.getElementById('confirmLocation').addEventListener('click', async () => {
-            try {
-                const user = firebase.auth().currentUser;
-                if (!user) {
-                    window.location.href = '/login';
-                    return;
-                }
+    console.log('Selected location:', selectedLocation);
 
-                await firebase.firestore().collection('users').doc(user.uid).update({
-                    location: {
-                        latitude: selectedLocation.lat(),
-                        longitude: selectedLocation.lng(),
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                    }
-                });
+    let latitude, longitude;
+    if (typeof selectedLocation.lat === 'function') {
+        latitude = selectedLocation.lat();
+        longitude = selectedLocation.lng();
+    } else if (typeof selectedLocation.latitude === 'number' && typeof selectedLocation.longitude === 'number') {
+        latitude = selectedLocation.latitude;
+        longitude = selectedLocation.longitude;
+    } else if (typeof selectedLocation.lat === 'number' && typeof selectedLocation.lng === 'number') {
+        latitude = selectedLocation.lat;
+        longitude = selectedLocation.lng;
+    } else {
+        console.error('Invalid location object:', selectedLocation);
+        showError('Please select a valid location');
+        return;
+    }
 
-                // Redirect based on user type
-                const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
-                const userData = userDoc.data();
+    try {
+        const user = firebase.auth().currentUser;
+        if (!user) {
+            window.location.href = '/login';
+            return;
+        }
 
-                if (userData.isDonationCenter) {
-                    window.location.href = '/donation-center-dashboard';
-                } else {
-                    window.location.href = '/neighbor-dashboard';
-                }
-            } catch (error) {
-                console.error('Error saving location:', error);
-                alert('Error saving your location. Please try again.');
+        // Get current token
+        const token = await user.getIdToken();
+
+        // Update user location in Firestore
+        await firebase.firestore().collection('users').doc(user.uid).update({
+            location: {
+                latitude: latitude,
+                longitude: longitude,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             }
         });
 
+        // Fetch user data to determine redirect
+        const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
+        const userData = userDoc.data();
+
+        // Redirect based on user type with token
+        const dashboardPath = userData.isDonationCenter ? '/donation-center-dashboard' : '/neighbor-dashboard';
+        const url = new URL(dashboardPath, window.location.origin);
+        url.searchParams.append('token', token);
+        window.location.href = url.toString();
+
+    } catch (error) {
+        console.error('Error saving location:', error);
+        showError('Error saving your location. Please try again.');
+    }
+});
         // Initialize the map and request location when the page loads
         window.onload = () => {
+            // Initialize map
             initMap();
             
             // Automatically trigger location request
@@ -133,11 +168,11 @@
                     },
                     (error) => {
                         console.error('Error getting location:', error);
-                        alert('Could not get your location. Please select a location on the map.');
+                        showError('Could not get your location. Please select a location on the map.');
                     }
                 );
             } else {
-                alert('Geolocation is not supported by this browser. Please pick a location on the map.');
+                showError('Geolocation is not supported by this browser. Please pick a location on the map.');
             }
         };
     </script>
