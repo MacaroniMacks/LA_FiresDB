@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="/static/css/signupStyles.css">
+</head>
+<body>
+    <div class="signup-container">
+        <div class="signup-header">
+            <h1>Create Account</h1>
+            <p>Please enter your details to sign up</p>
+        </div>
+
+        <div class="toggle-container">
+            <div class="toggle-wrapper">
+                <span>Customer</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="userTypeToggle">
+                    <span class="toggle-slider"></span>
+                </label>
+                <span>Company</span>
+            </div>
+        </div>
+
+        <form id="signupForm">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Create a password" required>
+            </div>
+
+            <!-- Company specific field -->
+            <div class="form-group company-field" style="display: none;">
+                <label for="companyName">Company Name</label>
+                <input type="text" id="companyName" name="companyName" placeholder="Enter company name">
+            </div>
+
+            <!-- Customer specific fields -->
+            <div class="form-group customer-field">
+                <label for="city">City</label>
+                <select id="city" name="city" required>
+                    <option value="" disabled selected>Select your city</option>
+                    <option value="london">London</option>
+                    <option value="manchester">Manchester</option>
+                    <option value="birmingham">Birmingham</option>
+                    <option value="leeds">Leeds</option>
+                    <option value="glasgow">Glasgow</option>
+                </select>
+            </div>
+
+            <div class="form-group customer-field">
+                <label for="energyProvider">Energy Provider</label>
+                <select id="energyProvider" name="energyProvider" required>
+                    <option value="" disabled selected>Select your energy provider</option>
+                    <option value="britishGas">British Gas</option>
+                    <option value="eon">E.ON</option>
+                    <option value="edf">EDF Energy</option>
+                    <option value="scottishPower">Scottish Power</option>
+                    <option value="sse">SSE</option>
+                </select>
+            </div>
+
+            <button type="submit" class="signup-button">Create account</button>
+            <div class="login-link">
+                Already have an account? <a href="/login">Sign in</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+    <!-- Firebase Config -->
+    <script src="{{ url_for('static', filename='js/config.js') }}"></script>
+
+    <!-- Your auth.js -->
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+
+    <!-- Form handler -->
+    <script>
+        const toggle = document.getElementById('userTypeToggle');
+        const customerFields = document.querySelectorAll('.customer-field');
+        const companyFields = document.querySelectorAll('.company-field');
+
+        toggle.addEventListener('change', () => {
+            const isCompany = toggle.checked;
+            
+            if (isCompany) {
+                customerFields.forEach(field => field.style.display = 'none');
+                companyFields.forEach(field => field.style.display = 'block');
+                
+                document.getElementById('city').removeAttribute('required');
+                document.getElementById('energyProvider').removeAttribute('required');
+                document.getElementById('companyName').setAttribute('required', '');
+            } else {
+                customerFields.forEach(field => field.style.display = 'block');
+                companyFields.forEach(field => field.style.display = 'none');
+                
+                document.getElementById('city').setAttribute('required', '');
+                document.getElementById('energyProvider').setAttribute('required', '');
+                document.getElementById('companyName').removeAttribute('required');
+            }
+        });
+
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const userType = toggle.checked ? 'company' : 'customer';
+            
+            const userData = {
+                email,
+                password,
+                userType
+            };
+
+            if (userType === 'company') {
+                userData.companyName = document.getElementById('companyName').value;
+            } else {
+                userData.city = document.getElementById('city').value;
+                userData.energyProvider = document.getElementById('energyProvider').value;
+            }
+
+            try {
+                await signup(email, password, userData);
+            } catch (error) {
+                console.error('Signup error:', error);
+                alert(error.message);
+            }
+        });
+    </script>
+</body>
+</html>
