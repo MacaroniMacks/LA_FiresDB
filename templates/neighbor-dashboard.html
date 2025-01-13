@@ -33,3 +33,72 @@
 
     <!-- Auth -->
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Get token from URL parameters first
+                const urlParams = new URLSearchParams(window.location.search);
+                const token = urlParams.get('token');
+
+                if (!token) {
+                    console.log('No token found in URL');
+                    window.location.href = '/login';
+                    return;
+                }
+
+                // Wait for Firebase Auth to initialize
+                await new Promise((resolve) => {
+                    const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
+                        unsubscribe();
+                        resolve(user);
+                    });
+                });
+
+                const user = firebase.auth().currentUser;
+                if (!user) {
+                    console.log('No user found');
+                    window.location.href = '/login';
+                    return;
+                }
+
+                // Get user data and check arrays
+                const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
+                const userData = userDoc.data();
+
+                // Set email in nav
+                document.getElementById('userEmail').textContent = user.email;
+
+                // Check if both arrays are empty
+                if ((!userData.canDonate || userData.canDonate.length === 0) && 
+                    (!userData.needs || userData.needs.length === 0)) {
+                    // Create and show popup
+                    const popup = document.createElement('div');
+                    popup.className = 'popup';
+                    popup.innerHTML = `
+                        <div class="popup-content">
+                            <h2>Welcome to LA Fires!</h2>
+                            <p>Let's get started by adding what you need or what you can donate.</p>
+                            <div class="popup-buttons">
+                                <button onclick="addNeeds()">Add Needs</button>
+                                <button onclick="addDonations()">Add Donations</button>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(popup);
+                }
+
+            } catch (error) {
+                console.error('Dashboard initialization error:', error);
+                window.location.href = '/login';
+            }
+        });
+
+        function addNeeds() {
+            console.log('Add needs clicked');
+        }
+
+        function addDonations() {
+            console.log('Add donations clicked');
+        }
+    </script>
