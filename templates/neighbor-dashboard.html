@@ -8,13 +8,13 @@
 </head>
 <body>
     <nav class="navbar">
-        <div class="nav-brand">EnergyBalance</div>
+        <div class="nav-brand">Help626</div>
         <div class="nav-links">
             <span id="userEmail"></span>
             <button onclick="logout()" class="logout-btn">Logout</button>
         </div>              
     </nav>
-
+ 
     <div class="dashboard-container">
         <div id="campaigns" class="tab-content">
             <div id="requestsList">
@@ -22,62 +22,56 @@
             </div>
         </div>
     </div>
-
+ 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
+ 
     <!-- Firebase Config -->
     <script src="{{ url_for('static', filename='js/config.js') }}"></script>
-
+ 
     <!-- Auth -->
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
-
+ 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             try {
-                // Get token from URL parameters first
                 const urlParams = new URLSearchParams(window.location.search);
                 const token = urlParams.get('token');
-
+ 
                 if (!token) {
                     console.log('No token found in URL');
                     window.location.href = '/login';
                     return;
                 }
-
-                // Wait for Firebase Auth to initialize
+ 
                 await new Promise((resolve) => {
                     const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
                         unsubscribe();
                         resolve(user);
                     });
                 });
-
+ 
                 const user = firebase.auth().currentUser;
                 if (!user) {
                     console.log('No user found');
                     window.location.href = '/login';
                     return;
                 }
-
-                // Get user data and check arrays
+ 
                 const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
                 const userData = userDoc.data();
-
-                // Set email in nav
+ 
                 document.getElementById('userEmail').textContent = user.email;
-
-                // Check if both arrays are empty
+ 
                 if ((!userData.canDonate || userData.canDonate.length === 0) && 
                     (!userData.needs || userData.needs.length === 0)) {
-                    // Create and show popup
                     const popup = document.createElement('div');
                     popup.className = 'popup';
                     popup.innerHTML = `
                         <div class="popup-content">
-                            <h2>Welcome to LA Fires!</h2>
+                            <h2>Welcome!</h2>
                             <p>Let's get started by adding what you need or what you can donate.</p>
                             <div class="popup-buttons">
                                 <button onclick="addNeeds()">Add Needs</button>
@@ -87,18 +81,208 @@
                     `;
                     document.body.appendChild(popup);
                 }
-
+ 
             } catch (error) {
                 console.error('Dashboard initialization error:', error);
                 window.location.href = '/login';
             }
         });
-
+ 
         function addNeeds() {
-            console.log('Add needs clicked');
+            const popup = document.querySelector('.popup');
+            popup.innerHTML = `
+                <div class="popup-content form-popup">
+                    <h2>Add What You Need</h2>
+                    <form id="needsForm">
+                        <div id="needsContainer">
+                            <div class="needs-row">
+                                <div class="input-group">
+                                    <label for="itemName_0">Item</label>
+                                    <input type="text" id="itemName_0" required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="quantity_0">Quantity</label>
+                                    <input type="number" id="quantity_0" min="1" required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="urgency_0">Urgency</label>
+                                    <select id="urgency_0" required>
+                                        <option value="low">Low</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="high">High</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label for="notes_0">Notes</label>
+                                    <input type="text" id="notes_0">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="addNeedRow()" class="add-row-btn">+ Add Another Item</button>
+                        <div class="form-buttons">
+                            <button type="submit">Submit</button>
+                            <button type="button" onclick="closePopup()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+ 
+            let rowCount = 1;
+ 
+            window.addNeedRow = function() {
+                const container = document.getElementById('needsContainer');
+                const newRow = document.createElement('div');
+                newRow.className = 'needs-row';
+                newRow.innerHTML = `
+                    <div class="input-group">
+                        <label for="itemName_${rowCount}">Item</label>
+                        <input type="text" id="itemName_${rowCount}" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="quantity_${rowCount}">Quantity</label>
+                        <input type="number" id="quantity_${rowCount}" min="1" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="urgency_${rowCount}">Urgency</label>
+                        <select id="urgency_${rowCount}" required>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="notes_${rowCount}">Notes</label>
+                        <input type="text" id="notes_${rowCount}">
+                    </div>
+                    <button type="button" class="remove-row-btn" onclick="this.parentElement.remove()">×</button>
+                `;
+                container.appendChild(newRow);
+                rowCount++;
+            };
+ 
+            document.getElementById('needsForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                try {
+                    const user = firebase.auth().currentUser;
+                    const needItems = [];
+ 
+                    const rows = document.querySelectorAll('.needs-row');
+                    rows.forEach((row, index) => {
+                        needItems.push({
+                            itemName: document.getElementById(`itemName_${index}`).value,
+                            quantity: parseInt(document.getElementById(`quantity_${index}`).value),
+                            urgency: document.getElementById(`urgency_${index}`).value,
+                            notes: document.getElementById(`notes_${index}`).value,
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    });
+ 
+                    const userRef = firebase.firestore().collection('users').doc(user.uid);
+                    await userRef.update({
+                        needs: firebase.firestore.FieldValue.arrayUnion(...needItems)
+                    });
+ 
+                    closePopup();
+                    alert('Needs added successfully!');
+                } catch (error) {
+                    console.error('Error adding needs:', error);
+                    alert('Error adding needs. Please try again.');
+                }
+            });
         }
-
+ 
         function addDonations() {
-            console.log('Add donations clicked');
+            const popup = document.querySelector('.popup');
+            popup.innerHTML = `
+                <div class="popup-content form-popup">
+                    <h2>Add What You Can Donate</h2>
+                    <form id="donateForm">
+                        <div id="donationsContainer">
+                            <div class="needs-row">
+                                <div class="input-group">
+                                    <label for="itemName_0">Item</label>
+                                    <input type="text" id="itemName_0" required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="quantity_0">Quantity</label>
+                                    <input type="number" id="quantity_0" min="1" required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="notes_0">Notes</label>
+                                    <input type="text" id="notes_0">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="addDonationRow()" class="add-row-btn">+ Add Another Item</button>
+                        <div class="form-buttons">
+                            <button type="submit">Submit</button>
+                            <button type="button" onclick="closePopup()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+ 
+            let rowCount = 1;
+ 
+            window.addDonationRow = function() {
+                const container = document.getElementById('donationsContainer');
+                const newRow = document.createElement('div');
+                newRow.className = 'needs-row';
+                newRow.innerHTML = `
+                    <div class="input-group">
+                        <label for="itemName_${rowCount}">Item</label>
+                        <input type="text" id="itemName_${rowCount}" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="quantity_${rowCount}">Quantity</label>
+                        <input type="number" id="quantity_${rowCount}" min="1" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="notes_${rowCount}">Notes</label>
+                        <input type="text" id="notes_${rowCount}">
+                    </div>
+                    <button type="button" class="remove-row-btn" onclick="this.parentElement.remove()">×</button>
+                `;
+                container.appendChild(newRow);
+                rowCount++;
+            };
+ 
+            document.getElementById('donateForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                try {
+                    const user = firebase.auth().currentUser;
+                    const donationItems = [];
+ 
+                    const rows = document.querySelectorAll('.needs-row');
+                    rows.forEach((row, index) => {
+                        donationItems.push({
+                            itemName: document.getElementById(`itemName_${index}`).value,
+                            quantity: parseInt(document.getElementById(`quantity_${index}`).value),
+                            notes: document.getElementById(`notes_${index}`).value,
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    });
+ 
+                    const userRef = firebase.firestore().collection('users').doc(user.uid);
+                    await userRef.update({
+                        canDonate: firebase.firestore.FieldValue.arrayUnion(...donationItems)
+                    });
+ 
+                    closePopup();
+                    alert('Donations added successfully!');
+                } catch (error) {
+                    console.error('Error adding donations:', error);
+                    alert('Error adding donations. Please try again.');
+                }
+            });
+        }
+ 
+        function closePopup() {
+            const popup = document.querySelector('.popup');
+            if (popup) {
+                popup.remove();
+            }
         }
     </script>
+ </body>
+ </html>

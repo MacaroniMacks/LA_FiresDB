@@ -8,7 +8,15 @@ async function login(email, password) {
         const token = await user.getIdToken(true);
         localStorage.setItem('authToken', token);
 
-       // Fetch user document from Firestore to get user type and location
+        // Wait for auth state to be fully ready
+        await new Promise((resolve) => {
+            const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
+                unsubscribe();
+                resolve(user);
+            });
+        });
+
+        // Fetch user document from Firestore to get user type and location
         const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
         const userData = userDoc.data();
 
