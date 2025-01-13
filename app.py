@@ -83,34 +83,40 @@ def login():
 def signup():
     return render_template('signup.html')
 
+@app.route('/setup-location')
+@login_required
+def setup_location():
+    return render_template('setup-location.html')
+
 @app.route('/api/signup', methods=['POST'])
 def api_signup():
     try:
         data = request.get_json()
         print("Received signup data:", data)
         
-        is_company = data.get('userType') == 'company'
+        isDonationCenter = data.get('userType') == 'donationCenter'
         
         # Get the user ID from the token
         token = data.get('idToken')
         decoded_token = auth.verify_id_token(token)
         user_id = decoded_token['user_id']
 
-        # Base user data
+        # Base user data structure
         user_data = {
-            'isCompany': is_company
+            'isDonationCenter': isDonationCenter,
+            'email': data.get('email'),
+            'needs': [],
+            'location': None
         }
 
-        if is_company:
+        if isDonationCenter:
             user_data.update({
-                'companyName': data.get('companyName')
+                'centerName': data.get('centerName'),
+                'inventory': []
             })
         else:
             user_data.update({
-                'provider': data.get('energyProvider'),
-                'region': data.get('city'),
-                'accountBal': 0,
-                'RequestIDsAccepted': []
+                'canDonate': []
             })
 
         print("Attempting to store user data:", user_data)
@@ -184,7 +190,7 @@ def api_login():
 
         return jsonify({
             'status': 'success',
-            'isCompany': user_data.get('isCompany', False)
+            'isDonationCenter': user_data.get('isDonationCenter', False)
         }), 200
 
     except Exception as e:
@@ -194,23 +200,23 @@ def api_login():
             'message': str(e)
         }), 500
 
-@app.route('/customer-dashboard')
+@app.route('/neighbor-dashboard')
 @login_required
-def customer_dashboard():
+def neighbor_dashboard():
     print("=== DASHBOARD ROUTE ===")
     print("1. Route accessed")
     print("2. User:", request.user if hasattr(request, 'user') else 'No user')
     try:
         print("3. Attempting to render template")
-        return render_template('customer-dashboard.html')
+        return render_template('neighbor-dashboard.html')
     except Exception as e:
         print("4. Error:", str(e))
         return str(e), 500
 
-@app.route('/company-dashboard')
+@app.route('/donation-center-dashboard')
 @login_required
-def company_dashboard():
-    return render_template('company-dashboard.html')
+def donation_center_dashboard():
+    return render_template('donation-center-dashboard.html')
 
 @app.route('/logout')
 def logout():

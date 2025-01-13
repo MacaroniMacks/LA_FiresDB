@@ -8,14 +8,22 @@ async function login(email, password) {
         const token = await user.getIdToken(true);
         localStorage.setItem('authToken', token);
 
-        // Fetch user document from Firestore to get isCompany status
+       // Fetch user document from Firestore to get user type and location
         const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
-        const isCompany = userDoc.data().isCompany;
+        const userData = userDoc.data();
 
-        // Determine dashboard based on account type
-        let dashboardPath = '/customer-dashboard';
-        if (isCompany === true) {
-            dashboardPath = '/company-dashboard';
+        // Check if location exists
+        if (!userData.location) {
+            const url = new URL('/setup-location', window.location.origin);
+            url.searchParams.append('token', token);
+            window.location.href = url.toString();
+            return;
+        }
+
+        // If location exists, proceed with dashboard routing
+        let dashboardPath = '/neighbor-dashboard';
+        if (userData.isDonationCenter === true) {
+            dashboardPath = '/donation-center-dashboard';
         }
 
         // Create URL with token
@@ -29,6 +37,7 @@ async function login(email, password) {
         alert(error.message);
     }
 }
+
 // Signup function
 async function signup(email, password, userData) {
     try {
