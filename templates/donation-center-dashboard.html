@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Dashboard</title>
-    <link rel="stylesheet" href="/static/css/companyDash.css">
+    <title>Donation Center Dashboard</title>
+    <link rel="stylesheet" href="/static/css/donationcenterDash.css">
 </head>
 <body>
     <nav class="navbar">
@@ -91,8 +91,8 @@
                         const userData = userDoc.data();
                         document.getElementById('userEmail').textContent = user.email;
 
-                        if (!userData.isCompany) {
-                            window.location.href = '/customer-dashboard';
+                        if (!userData.isDonationCenter) {
+                            window.location.href = '/neighbor-dashboard';
                         }
                     }
                     // Don't redirect to login here - just don't load content

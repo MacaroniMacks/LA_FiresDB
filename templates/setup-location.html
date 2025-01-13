@@ -3,25 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Set Your Location</title>
+    <title>Set Location</title>
     <link rel="stylesheet" href="/static/css/locationStyles.css">
     <!-- Google Maps JavaScript API -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBzIOcI6yLPH7uG5q-P8A_AGb6aGrLXO08"></script>
 </head>
 <body>
-    <div class="location-container">
-        <div class="location-header">
-            <h1>Set Your Location</h1>
-            <p>Please either allow location access or pick your location on the map</p>
-        </div>
-
-        <div class="map-container">
-            <div id="map" style="height: 400px; width: 100%;"></div>
-        </div>
-
+    <div class="map-container">
+        <div id="map"></div>
         <div class="button-container">
-            <button id="useCurrentLocation" class="location-button">Use My Current Location</button>
-            <button id="confirmLocation" class="location-button" disabled>Confirm Location</button>
+            <button id="useCurrentLocation" class="location-button">Use My Location</button>
+            <button id="confirmLocation" class="location-button" disabled>Confirm</button>
         </div>
     </div>
 
@@ -45,6 +37,9 @@
             map = new google.maps.Map(document.getElementById('map'), {
                 zoom: 10,
                 center: defaultLocation,
+                fullscreenControl: false,
+                mapTypeControl: false,
+                streetViewControl: false
             });
 
             // Click listener for the map
@@ -113,15 +108,38 @@
                     window.location.href = '/donation-center-dashboard';
                 } else {
                     window.location.href = '/neighbor-dashboard';
-}
+                }
             } catch (error) {
                 console.error('Error saving location:', error);
                 alert('Error saving your location. Please try again.');
             }
         });
 
-        // Initialize the map when the page loads
-        window.onload = initMap;
+        // Initialize the map and request location when the page loads
+        window.onload = () => {
+            initMap();
+            
+            // Automatically trigger location request
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const pos = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        
+                        map.setCenter(pos);
+                        placeMarker(pos);
+                    },
+                    (error) => {
+                        console.error('Error getting location:', error);
+                        alert('Could not get your location. Please select a location on the map.');
+                    }
+                );
+            } else {
+                alert('Geolocation is not supported by this browser. Please pick a location on the map.');
+            }
+        };
     </script>
 </body>
 </html>

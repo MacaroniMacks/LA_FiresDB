@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Dashboard</title>
-    <link rel="stylesheet" href="/static/css/customerDash.css">
+    <title>Neighbor Dashboard</title>
+    <link rel="stylesheet" href="/static/css/neighborDash.css">
 </head>
 <body>
     <nav class="navbar">
@@ -139,8 +139,8 @@
                         const userData = userDoc.data();
                         document.getElementById('userEmail').textContent = user.email;
 
-                        if (userData.isCompany) {
-                            window.location.href = '/company-dashboard';
+                        if (userData.isDonationCenter) {
+                            window.location.href = '/donation-center-dashboard';
                         } else {
                             await loadRequests();
                         }
