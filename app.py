@@ -61,7 +61,11 @@ def login_required(view_function):
             return redirect(url_for('login'))
 
         try:
-            decoded_token = auth.verify_id_token(token)
+            decoded_token = auth.verify_id_token(
+                token,
+                check_revoked=False,
+                clock_skew_seconds=60  # Added this line
+            )
             request.user = decoded_token
             return view_function(*args, **kwargs)
             

@@ -222,12 +222,17 @@ body {
     border-radius: 50%;
     width: 24px;
     height: 24px;
-    line-height: 24px;
+    line-height: 20px;  /* Adjusted from 24px */
     text-align: center;
     cursor: pointer;
     position: absolute;
-    right: -32px;
+    right: -28px;
     bottom: 8px;
+    display: flex;     /* Added */
+    align-items: center;  /* Added */
+    justify-content: center;  /* Added */
+    padding-left: 0.5px;  /* Added this to nudge the X slightly right */
+    padding-bottom: 2px;  /* Added this to nudge the X slightly up */
 }
 
 .add-row-btn:hover {
@@ -294,4 +299,26 @@ textarea:focus {
 .add-row-btn,
 .remove-row-btn {
     transition: all 0.2s ease;
+}
+
+/* Initial welcome popup */
+.popup > .popup-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    text-align: center;
+    width: 550px !important;  /* Force narrower width */
+    max-width: 90%;
+    min-width: unset !important;  /* Remove any min-width */
+}
+
+/* Form popup - keep the wider width */
+.popup > .popup-content.form-popup {
+    width: 800px !important;
+    min-width: 800px;
+}
+
+input[type="number"]::placeholder {
+    color: #999;
+    opacity: 1;
 }
