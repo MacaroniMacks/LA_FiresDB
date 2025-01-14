@@ -15,7 +15,8 @@ def validate_token(auth_token):
         # Verify the token
         decoded_token = auth.verify_id_token(
             auth_token, 
-            check_revoked=True
+            check_revoked=True,
+            clock_skew_seconds=60
         )
         return decoded_token
     except auth.InvalidIdTokenError:
@@ -99,8 +100,12 @@ def api_signup():
         
         # Get the user ID from the token
         token = data.get('idToken')
-        decoded_token = auth.verify_id_token(token)
-        user_id = decoded_token['user_id']
+        decoded_token = auth.verify_id_token(
+            token,
+            check_revoked=False,
+            clock_skew_seconds=60
+        )
+        user_id = decoded_token['user_id'] 
 
         # Base user data structure
         user_data = {
@@ -160,7 +165,11 @@ def api_login():
 
         try:
             # Verify the token using Firebase Admin SDK
-            decoded_token = auth.verify_id_token(id_token)
+            decoded_token = auth.verify_id_token(
+                id_token,
+                check_revoked=False,
+                clock_skew_seconds=60
+            )
             print("Token decoded successfully:", decoded_token)
 
             # Get the user ID from the decoded token
