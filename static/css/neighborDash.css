@@ -322,3 +322,13 @@ input[type="number"]::placeholder {
     color: #999;
     opacity: 1;
 }
+
+#userEmail {
+    cursor: pointer;
+    color: inherit;
+    text-decoration: none;
+}
+
+#userEmail:hover {
+    text-decoration: underline;
+}

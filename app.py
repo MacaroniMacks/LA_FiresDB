@@ -223,6 +223,14 @@ def neighbor_dashboard():
         return jsonify({'status': 'success'})
     return render_template('neighbor-dashboard.html')
 
+@app.route('/neighbor-profile')
+@login_required
+def neighbor_profile():
+    # Check if it's an API request or browser request
+    if request.headers.get('Accept') == 'application/json':
+        return jsonify({'status': 'success'})
+    return render_template('neighbor-profile.html')
+
 @app.route('/donation-center-dashboard')
 @login_required
 def donation_center_dashboard():

@@ -10,9 +10,9 @@
    <nav class="navbar">
        <div class="nav-brand">Help626</div>
        <div class="nav-links">
-           <span id="userEmail"></span>
-           <button onclick="logout()" class="logout-btn">Logout</button>
-       </div>              
+        <a href="#" id="userEmail" onclick="goToProfile(event)"></a>
+        <button onclick="logout()" class="logout-btn">Logout</button>
+    </div>      
    </nav>
 
    <div class="dashboard-container">
@@ -181,35 +181,33 @@
            };
 
            document.getElementById('needsForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            try {
-                const user = firebase.auth().currentUser;
-                const needItems = [];
+                e.preventDefault();
+                try {
+                    const user = firebase.auth().currentUser;
+                    const needItems = [];
 
-                const rows = document.querySelectorAll('.needs-row');
-                rows.forEach((row, index) => {
-                    const quantity = document.getElementById(`quantity_${index}`).value;
-                    needItems.push({
-                        itemName: document.getElementById(`itemName_${index}`).value,
-                        quantity: quantity ? parseInt(quantity) : null,
-                        urgency: document.getElementById(`urgency_${index}`).value,
-                        notes: document.getElementById(`notes_${index}`).value,
-                        timestamp: new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })
+                    const rows = document.querySelectorAll('.needs-row');
+                    rows.forEach((row, index) => {
+                        const quantity = document.getElementById(`quantity_${index}`).value;
+                        needItems.push({
+                            itemName: document.getElementById(`itemName_${index}`).value,
+                            quantity: quantity ? parseInt(quantity) : null,
+                            urgency: document.getElementById(`urgency_${index}`).value,
+                            notes: document.getElementById(`notes_${index}`).value,
+                            timestamp: new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })
+                        });
                     });
-                });
 
-                const userRef = firebase.firestore().collection('users').doc(user.uid);
-                await userRef.update({
-                    needs: firebase.firestore.FieldValue.arrayUnion(...needItems)
-                });
-
-                closePopup();
-                alert('Needs added successfully!');
-            } catch (error) {
-                console.error('Error adding needs:', error);
-                alert('Error adding needs. Please try again.');
-            }
-        });
+                    const userRef = firebase.firestore().collection('users').doc(user.uid);
+                    await userRef.update({
+                        needs: firebase.firestore.FieldValue.arrayUnion(...needItems)
+                    });
+                    showInitialPopup();  // Changed this line from closePopup()
+                } catch (error) {
+                    console.error('Error adding needs:', error);
+                    alert('Error adding needs. Please try again.');
+                }
+            });
        }
 
        function addDonations() {
@@ -289,9 +287,7 @@
                 await userRef.update({
                     canDonate: firebase.firestore.FieldValue.arrayUnion(...donationItems)
                 });
-
-                closePopup();
-                alert('Donations added successfully!');
+                showInitialPopup();  // Changed this line from closePopup()
             } catch (error) {
                 console.error('Error adding donations:', error);
                 alert('Error adding donations. Please try again.');
@@ -305,6 +301,17 @@
                popup.remove();
            }
        }
+
+       async function goToProfile(event) {
+            event.preventDefault();
+            const user = firebase.auth().currentUser;
+            if (user) {
+                const token = await user.getIdToken();
+                const url = new URL('/neighbor-profile', window.location.origin);
+                url.searchParams.append('token', token);
+                window.location.href = url.toString();
+            }
+        }
    </script>
 </body>
 </html>

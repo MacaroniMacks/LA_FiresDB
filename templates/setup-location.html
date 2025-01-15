@@ -6,7 +6,13 @@
     <title>Set Location</title>
     <link rel="stylesheet" href="/static/css/locationStyles.css">
     <!-- Google Maps JavaScript API -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBzIOcI6yLPH7uG5q-P8A_AGb6aGrLXO08"></script>
+    <script src="{{ url_for('static', filename='js/map-config.js') }}"></script>
+    <script>
+        // Create and append the Maps script dynamically
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}`;
+        document.head.appendChild(script);
+    </script>
 </head>
 <body>
     <div class="map-container">
