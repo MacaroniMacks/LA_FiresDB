@@ -8,9 +8,8 @@
     <!-- Google Maps JavaScript API -->
     <script src="{{ url_for('static', filename='js/map-config.js') }}"></script>
     <script>
-        // Create and append the Maps script dynamically
         const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}`;
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&callback=initMap`;
         document.head.appendChild(script);
     </script>
 </head>
@@ -46,23 +45,48 @@
             }, 5000);
         }
 
-        function initMap() {
-            // Default to LA area
-            const defaultLocation = { lat: 34.0522, lng: -118.2437 };
-            
-            map = new google.maps.Map(document.getElementById('map'), {
-                zoom: 10,
-                center: defaultLocation,
-                fullscreenControl: false,
-                mapTypeControl: false,
-                streetViewControl: false
-            });
+        // Remove window.onload and make initMap a standalone function
+function initMap() {
+    const defaultLocation = { lat: 34.0522, lng: -118.2437 };
+    
+    map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 10,
+        center: defaultLocation,
+        zoomControl: true,
+        zoomControlOptions: {
+            position: google.maps.ControlPosition.RIGHT_CENTER,
+            style: google.maps.ZoomControlStyle.LARGE
+        },
+        navigationControl: true,
+        streetViewControl: false
+    });
 
-            // Click listener for the map
-            map.addListener('click', (e) => {
-                placeMarker(e.latLng);
-            });
-        }
+    // Click listener for the map
+    map.addListener('click', (e) => {
+        placeMarker(e.latLng);
+    });
+    
+    // Move the automatic location request here
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const pos = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                
+                map.setCenter(pos);
+                placeMarker(pos);
+            },
+            (error) => {
+                console.error('Error getting location:', error);
+                showError('Could not get your location. Please select a location on the map.');
+            }
+        );
+    } else {
+        showError('Geolocation is not supported by this browser. Please pick a location on the map.');
+    }
+}
 
         function placeMarker(location) {
             console.log('Placing marker:', location);
