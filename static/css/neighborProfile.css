@@ -333,9 +333,241 @@ input[type="number"]::placeholder {
     text-decoration: underline;
 }
 
-.urgency-group {
+.profile-sections {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.section h2 {
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.item-card {
+    background: #f8f9fa;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+}
+
+.item-info h3 {
+    margin: 0 0 0.5rem 0;
+    color: #333;
+}
+
+.item-info p {
+    margin: 0.25rem 0;
+    color: #666;
+}
+
+.timestamp {
+    font-size: 0.875rem;
+    color: #888 !important;
+}
+
+.item-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.edit-btn, .delete-btn {
+    padding: 0.25rem 0.75rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.edit-btn {
+    background: #007bff;
+    color: white;
+}
+
+.delete-btn {
+    background: #dc3545;
+    color: white;
+}
+
+.add-button {
+    width: 100%;
+    padding: 0.75rem;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+.no-items {
+    color: #666;
+    text-align: center;
+    font-style: italic;
+}
+
+.edit-profile-btn {
+    display: block;
+    margin: 1rem auto;
+    padding: 0.5rem 1rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.item-card .item-content {
+    text-align: center;
+}
+
+.item-card .item-name {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.item-card .item-quantity,
+.item-card .item-urgency,
+.item-card .item-notes {
+    margin: 0.25rem 0;
+    color: #666;
+}
+
+.item-card .item-notes {
+    white-space: normal;  /* Allow the text to break and wrap normally */
+    word-wrap: break-word; /* Prevent text from overflowing horizontally */
+    word-break: break-word; /* Ensure the text breaks correctly within the container */
+}
+
+.item-card .timestamp {
+    font-size: 0.875rem;
+    color: #888;
+    margin-top: 0.5rem;
+}
+
+.item-urgency {
+    font-weight: bold;
+}
+
+.low-urgency {
+    color: #2a7e19;
+}
+
+.medium-urgency {
+    color: #d48806;
+}
+
+.high-urgency {
+    color: #cf1322;
+}
+
+.edit-button-container {
+    display: flex;
+    justify-content: center;
+    padding: 1rem 0;
+    background-color: #f5f5f5;
+}
+
+.edit-profile-btn {
+    padding: 0.5rem 1rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.item-card {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.item-content {
+    text-align: center;
+}
+
+.item-name {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.item-quantity,
+.item-notes {
+    margin: 0.25rem 0;
+    color: #666;
+}
+
+.item-urgency-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0.25rem 0;
+}
+
+.item-urgency-bar {
+    width: 100px;
+    height: 10px;
+    border-radius: 5px;
+    margin-bottom: 0.25rem;
+    background-color: #ddd;
+}
+
+.item-urgency-bar.low {
+    background-color: #2a7e19;
+}
+
+.item-urgency-bar.medium {
+    background-color: #d48806;
+}
+
+.item-urgency-bar.high {
+    background-color: #cf1322;
+}
+
+.item-urgency-container span {
+    font-weight: bold;
+}
+
+.item-notes {
+    border: 1px solid #ddd;
+    padding: 0.5rem;
+    border-radius: 4px;
+}
+
+.item-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.delete-btn {
+    padding: 0.25rem 0.75rem;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.error {
+    color: #dc3545;
+    font-weight: bold;
 }
 
 .urgency-selector {
@@ -350,9 +582,8 @@ input[type="number"]::placeholder {
     flex: 1;
     padding: 0.5rem;
     text-align: center;
-    cursor: pointer;
     transition: background-color 0.3s ease;
-    border: 1px solid rgba(0,0,0,0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .urgency-segment.low-urgency {
@@ -377,4 +608,13 @@ input[type="number"]::placeholder {
 
 .urgency-segment:hover {
     opacity: 0.8;
+}
+
+.urgency-segment[onclick] {
+    cursor: pointer;
+}
+
+/* or more specifically */
+.urgency-selector .urgency-segment[onclick] {
+    cursor: pointer;
 }

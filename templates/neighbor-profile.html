@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Neighbor Profile</title>
+   <link rel="stylesheet" href="/static/css/neighborProfile.css">
+</head>
+<body>
+   <nav class="navbar">
+       <div class="nav-brand">Help626</div>
+       <div class="nav-links">
+           <a href="#" id="userEmail" onclick="goToProfile(event)"></a>
+           <button onclick="logout()" class="logout-btn">Logout</button>
+       </div>              
+   </nav>
+
+   <div class="edit-button-container">
+       <button id="edit-profile-btn" class="edit-profile-btn">Edit Profile</button>
+   </div>
+
+   <div class="dashboard-container">
+       <div class="profile-sections">
+           <div class="section">
+               <h2>Items I Need</h2>
+               <div id="needsList">
+                   <!-- Needs will be loaded here dynamically -->
+               </div>
+               <button onclick="addNeeds()" class="add-button">+ Add Needs</button>
+           </div>
+
+           <div class="section">
+               <h2>Items I Can Donate</h2>
+               <div id="donationsList">
+                   <!-- Donations will be loaded here dynamically -->
+               </div>
+               <button onclick="addDonations()" class="add-button">+ Add Donations</button>
+           </div>
+       </div>
+   </div>
+
+   <!-- Firebase SDKs -->
+   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+   <!-- Firebase Config -->
+   <script src="{{ url_for('static', filename='js/config.js') }}"></script>
+
+   <!-- Auth -->
+   <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+
+   <script>
+   let isEditMode = false;
+
+   function selectUrgency(element) {
+       const parent = element.closest('.urgency-selector');
+       parent.querySelectorAll('.urgency-segment').forEach(segment => {
+           segment.classList.remove('active');
+       });
+       element.classList.add('active');
+   }
+
+   document.addEventListener('DOMContentLoaded', async () => {
+       try {
+           const urlParams = new URLSearchParams(window.location.search);
+           const token = urlParams.get('token');
+
+           if (!token) {
+               console.log('No token found in URL');
+               window.location.href = '/login';
+               return;
+           }
+
+           await new Promise((resolve) => {
+               const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
+                   unsubscribe();
+                   resolve(user);
+               });
+           });
+
+           const user = firebase.auth().currentUser;
+           if (!user) {
+               console.log('No user found');
+               window.location.href = '/login';
+               return;
+           }
+
+           document.getElementById('userEmail').textContent = user.email;
+
+           const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
+           const userData = userDoc.data();
+
+           const editToggleButton = document.getElementById('edit-profile-btn');
+           editToggleButton.addEventListener('click', async () => {
+               isEditMode = !isEditMode;
+               editToggleButton.textContent = isEditMode ? 'Save Changes' : 'Edit Profile';
+
+               if (!isEditMode) {
+                   try {
+                       const updatedNeeds = Array.from(document.querySelectorAll('#needsList .item-card')).map((card, index) => {
+                           const originalItem = userData.needs[index];
+                           const urgencySelector = card.querySelector('.urgency-selector');
+                           const activeUrgency = urgencySelector.querySelector('.urgency-segment.active');
+                           
+                           return {
+                               itemName: originalItem.itemName,
+                               quantity: card.querySelector('.quantity-input')?.value || null,
+                               urgency: activeUrgency ? activeUrgency.getAttribute('data-urgency') : originalItem.urgency,
+                               notes: card.querySelector('.notes-input')?.value || '',
+                               timestamp: originalItem.timestamp
+                           };
+                       });
+
+                       const updatedDonations = Array.from(document.querySelectorAll('#donationsList .item-card')).map((card, index) => {
+                           const originalItem = userData.canDonate[index];
+                           return {
+                               itemName: originalItem.itemName,
+                               quantity: card.querySelector('.quantity-input')?.value || null,
+                               notes: card.querySelector('.notes-input')?.value || '',
+                               timestamp: originalItem.timestamp
+                           };
+                       });
+
+                       const userRef = firebase.firestore().collection('users').doc(user.uid);
+                       await userRef.update({
+                           needs: updatedNeeds,
+                           canDonate: updatedDonations
+                       });
+
+                       userData.needs = updatedNeeds;
+                       userData.canDonate = updatedDonations;
+                   } catch (error) {
+                       console.error('Error saving changes:', error);
+                       alert('Failed to save changes. Please try again.');
+                       return;
+                   }
+               }
+
+               renderItems(document.getElementById('needsList'), userData.needs, 'needs');
+               renderItems(document.getElementById('donationsList'), userData.canDonate, 'donations');
+           });
+
+           renderItems(document.getElementById('needsList'), userData.needs, 'needs');
+           renderItems(document.getElementById('donationsList'), userData.canDonate, 'donations');
+
+       } catch (error) {
+           console.error('Profile initialization error:', error);
+           window.location.href = '/login';
+       }
+   });
+
+   function renderItems(container, items, type) {
+       container.innerHTML = '';
+
+       if (!items || items.length === 0) {
+           container.innerHTML = `<p class="no-items">No ${type} added yet</p>`;
+           return;
+       }
+
+       items.forEach((item, index) => {
+           const itemCard = document.createElement('div');
+           itemCard.className = 'item-card';
+
+           if (isEditMode) {
+               const urgencySelector = type === 'needs' ? `
+                   <div class="input-group urgency-group">
+                       <label>Urgency</label>
+                       <div class="urgency-selector" id="urgency_${index}">
+                           <div class="urgency-segment low-urgency ${item.urgency === 'low' ? 'active' : ''}" data-urgency="low" onclick="selectUrgency(this)">Low Urgency</div>
+                           <div class="urgency-segment medium-urgency ${item.urgency === 'medium' ? 'active' : ''}" data-urgency="medium" onclick="selectUrgency(this)">Medium Urgency</div>
+                           <div class="urgency-segment high-urgency ${item.urgency === 'high' ? 'active' : ''}" data-urgency="high" onclick="selectUrgency(this)">High Urgency</div>
+                       </div>
+                   </div>
+               ` : '';
+
+               itemCard.innerHTML = `
+                    <div class="item-content">
+                        <div class="item-header" style="position: relative;">
+                            <h3 class="item-name">${item.itemName}</h3>
+                            <button class="delete-btn" onclick="deleteItem('${type}', ${index})" style="position: absolute; top: 0; right: 0;">×</button>
+                        </div>
+                        <div class="item-details">
+                            <div class="quantity-field">
+                                <label>Quantity:</label>
+                                <input type="number" class="quantity-input" value="${item.quantity || ''}" min="1" placeholder="Optional">
+                            </div>
+                            ${urgencySelector}
+                            <div class="notes-field">
+                                <label>Notes:</label>
+                                <textarea class="notes-input">${item.notes || ''}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                `;
+           } else {
+            const urgencyDisplay = type === 'needs' ? `
+                <div class="input-group urgency-group">
+                    <div class="urgency-selector">
+                        <div class="urgency-segment ${item.urgency}-urgency active" data-urgency="${item.urgency}">
+                            ${item.urgency === 'low' ? 'Low Urgency' : item.urgency === 'medium' ? 'Medium Urgency' : 'High Urgency'}
+                        </div>
+                    </div>
+                </div>
+            ` : '';
+
+               itemCard.innerHTML = `
+                   <div class="item-content">
+                       <h3 class="item-name">${item.itemName}</h3>
+                       ${item.quantity ? `<p class="item-quantity">Quantity: ${item.quantity}</p>` : ''}
+                       ${urgencyDisplay}
+                       ${item.notes ? `<p class="item-notes">${item.notes}</p>` : ''}
+                       <p class="timestamp">Added: ${new Date(item.timestamp).toLocaleDateString()}</p>
+                   </div>
+               `;
+           }
+
+           container.appendChild(itemCard);
+       });
+   }
+
+   async function deleteItem(type, index) {
+       const user = firebase.auth().currentUser;
+       if (!user) return;
+
+       try {
+           const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
+           const userData = userDoc.data();
+           
+           const arrayField = type === 'needs' ? 'needs' : 'canDonate';
+           const updatedItems = [...userData[arrayField]];
+           updatedItems.splice(index, 1);
+
+           await firebase.firestore().collection('users').doc(user.uid).update({
+               [arrayField]: updatedItems
+           });
+
+           renderItems(
+               document.getElementById(`${type}List`),
+               updatedItems,
+               type
+           );
+       } catch (error) {
+           console.error('Error deleting item:', error);
+           alert('Failed to delete item. Please try again.');
+       }
+   }
+
+   async function goToProfile(event) {
+       event.preventDefault();
+       const user = firebase.auth().currentUser;
+       if (user) {
+           const token = await user.getIdToken();
+           const url = new URL('/neighbor-profile', window.location.origin);
+           url.searchParams.append('token', token);
+           window.location.href = url.toString();
+       }
+   }
+   </script>
+</body>
+</html>

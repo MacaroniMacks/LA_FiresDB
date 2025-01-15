@@ -108,79 +108,90 @@
             `;
 }
 
-       function addNeeds() {
-           const popup = document.querySelector('.popup');
-           popup.innerHTML = `
-               <div class="popup-content form-popup">
-                   <h2>Add What You Need</h2>
-                   <form id="needsForm">
-                       <div id="needsContainer">
-                           <div class="needs-row">
-                               <div class="input-group">
-                                   <label for="itemName_0">Item</label>
-                                   <input type="text" id="itemName_0" required>
-                               </div>
-                               <div class="input-group">
-                                   <label for="quantity_0">Quantity</label>
-                                   <input type="number" id="quantity_0" min="1" placeholder="Optional">
-                               </div>
-                               <div class="input-group">
-                                   <label for="urgency_0">Urgency</label>
-                                   <select id="urgency_0" required>
-                                       <option value="low">Low</option>
-                                       <option value="medium">Medium</option>
-                                       <option value="high">High</option>
-                                   </select>
-                               </div>
-                               <div class="input-group">
-                                   <label for="notes_0">Notes</label>
-                                   <input type="text" id="notes_0">
-                               </div>
-                           </div>
-                       </div>
-                       <button type="button" onclick="addNeedRow()" class="add-row-btn">+ Add Another Item</button>
-                       <div class="form-buttons">
+        function addNeeds() {
+            const popup = document.querySelector('.popup');
+            popup.innerHTML = `
+                <div class="popup-content form-popup">
+                    <h2>Add What You Need</h2>
+                    <form id="needsForm">
+                        <div id="needsContainer">
+                            <div class="needs-row">
+                                <div class="input-group">
+                                    <label for="itemName_0">Item</label>
+                                    <input type="text" id="itemName_0" required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="quantity_0">Quantity</label>
+                                    <input type="number" id="quantity_0" min="1" placeholder="Optional">
+                                </div>
+                                <div class="input-group urgency-group">
+                                    <label>Urgency</label>
+                                    <div class="urgency-selector" id="urgency_0">
+                                        <div class="urgency-segment low-urgency" data-urgency="low" onclick="selectUrgency(this)">Low</div>
+                                        <div class="urgency-segment medium-urgency" data-urgency="medium" onclick="selectUrgency(this)">Medium</div>
+                                        <div class="urgency-segment high-urgency" data-urgency="high" onclick="selectUrgency(this)">High</div>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label for="notes_0">Notes</label>
+                                    <input type="text" id="notes_0">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="addNeedRow()" class="add-row-btn">+ Add Another Item</button>
+                        <div class="form-buttons">
                             <button type="submit">Submit</button>
                             <button type="button" onclick="showInitialPopup()">Back</button>
                         </div>
-                   </form>
-               </div>
-           `;
+                    </form>
+                </div>
+            `;
 
-           let rowCount = 1;
+            // Add global function for urgency selection
+            window.selectUrgency = function(element) {
+                const parent = element.closest('.urgency-selector');
+                // Remove active class from all segments
+                parent.querySelectorAll('.urgency-segment').forEach(segment => {
+                    segment.classList.remove('active');
+                });
+                // Add active class to clicked segment
+                element.classList.add('active');
+            };
 
-           window.addNeedRow = function() {
-               const container = document.getElementById('needsContainer');
-               const newRow = document.createElement('div');
-               newRow.className = 'needs-row';
-               newRow.innerHTML = `
-                   <div class="input-group">
-                       <label for="itemName_${rowCount}">Item</label>
-                       <input type="text" id="itemName_${rowCount}" required>
-                   </div>
-                   <div class="input-group">
-                       <label for="quantity_${rowCount}">Quantity</label>
-                       <input type="number" id="quantity_${rowCount}" min="1" placeholder="Optional">
-                   </div>
-                   <div class="input-group">
-                       <label for="urgency_${rowCount}">Urgency</label>
-                       <select id="urgency_${rowCount}" required>
-                           <option value="low">Low</option>
-                           <option value="medium">Medium</option>
-                           <option value="high">High</option>
-                       </select>
-                   </div>
-                   <div class="input-group">
-                       <label for="notes_${rowCount}">Notes</label>
-                       <input type="text" id="notes_${rowCount}">
-                   </div>
-                   <button type="button" class="remove-row-btn" onclick="this.parentElement.remove()">×</button>
-               `;
-               container.appendChild(newRow);
-               rowCount++;
-           };
+            let rowCount = 1;
 
-           document.getElementById('needsForm').addEventListener('submit', async (e) => {
+            window.addNeedRow = function() {
+                const container = document.getElementById('needsContainer');
+                const newRow = document.createElement('div');
+                newRow.className = 'needs-row';
+                newRow.innerHTML = `
+                    <div class="input-group">
+                        <label for="itemName_${rowCount}">Item</label>
+                        <input type="text" id="itemName_${rowCount}" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="quantity_${rowCount}">Quantity</label>
+                        <input type="number" id="quantity_${rowCount}" min="1" placeholder="Optional">
+                    </div>
+                    <div class="input-group urgency-group">
+                        <label>Urgency</label>
+                        <div class="urgency-selector" id="urgency_${rowCount}">
+                            <div class="urgency-segment low-urgency" data-urgency="low" onclick="selectUrgency(this)">Low</div>
+                            <div class="urgency-segment medium-urgency" data-urgency="medium" onclick="selectUrgency(this)">Medium</div>
+                            <div class="urgency-segment high-urgency" data-urgency="high" onclick="selectUrgency(this)">High</div>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="notes_${rowCount}">Notes</label>
+                        <input type="text" id="notes_${rowCount}">
+                    </div>
+                    <button type="button" class="remove-row-btn" onclick="this.parentElement.remove()">×</button>
+                `;
+                container.appendChild(newRow);
+                rowCount++;
+            };
+
+            document.getElementById('needsForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 try {
                     const user = firebase.auth().currentUser;
@@ -189,10 +200,13 @@
                     const rows = document.querySelectorAll('.needs-row');
                     rows.forEach((row, index) => {
                         const quantity = document.getElementById(`quantity_${index}`).value;
+                        const urgencySelector = document.getElementById(`urgency_${index}`);
+                        const activeUrgency = urgencySelector.querySelector('.active');
+                        
                         needItems.push({
                             itemName: document.getElementById(`itemName_${index}`).value,
                             quantity: quantity ? parseInt(quantity) : null,
-                            urgency: document.getElementById(`urgency_${index}`).value,
+                            urgency: activeUrgency ? activeUrgency.dataset.urgency : 'low',
                             notes: document.getElementById(`notes_${index}`).value,
                             timestamp: new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })
                         });
@@ -202,13 +216,13 @@
                     await userRef.update({
                         needs: firebase.firestore.FieldValue.arrayUnion(...needItems)
                     });
-                    showInitialPopup();  // Changed this line from closePopup()
+                    showInitialPopup();
                 } catch (error) {
                     console.error('Error adding needs:', error);
                     alert('Error adding needs. Please try again.');
                 }
             });
-       }
+        }
 
        function addDonations() {
            const popup = document.querySelector('.popup');
