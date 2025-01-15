@@ -8,7 +8,7 @@
 </head>
 <body>
    <nav class="navbar">
-       <div class="nav-brand">Help626</div>
+       <a href="#" class="nav-brand" onclick="goToDashboard(event)">Help626</a>
        <div class="nav-links">
            <a href="#" id="userEmail" onclick="goToProfile(event)"></a>
            <button onclick="logout()" class="logout-btn">Logout</button>
@@ -89,57 +89,70 @@
            document.getElementById('userEmail').textContent = user.email;
 
            const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
-           const userData = userDoc.data();
+           let userData = userDoc.data();
 
            const editToggleButton = document.getElementById('edit-profile-btn');
-           editToggleButton.addEventListener('click', async () => {
-               isEditMode = !isEditMode;
-               editToggleButton.textContent = isEditMode ? 'Save Changes' : 'Edit Profile';
+editToggleButton.addEventListener('click', async () => {
+    try {
+        // Fetch fresh data before entering edit mode
+        const user = firebase.auth().currentUser;
+        const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
+        const freshUserData = userDoc.data();
+        userData = freshUserData; // Update the userData variable with fresh data
 
-               if (!isEditMode) {
-                   try {
-                       const updatedNeeds = Array.from(document.querySelectorAll('#needsList .item-card')).map((card, index) => {
-                           const originalItem = userData.needs[index];
-                           const urgencySelector = card.querySelector('.urgency-selector');
-                           const activeUrgency = urgencySelector.querySelector('.urgency-segment.active');
-                           
-                           return {
-                               itemName: originalItem.itemName,
-                               quantity: card.querySelector('.quantity-input')?.value || null,
-                               urgency: activeUrgency ? activeUrgency.getAttribute('data-urgency') : originalItem.urgency,
-                               notes: card.querySelector('.notes-input')?.value || '',
-                               timestamp: originalItem.timestamp
-                           };
-                       });
+        isEditMode = !isEditMode;
+        editToggleButton.textContent = isEditMode ? 'Save Changes' : 'Edit Profile';
 
-                       const updatedDonations = Array.from(document.querySelectorAll('#donationsList .item-card')).map((card, index) => {
-                           const originalItem = userData.canDonate[index];
-                           return {
-                               itemName: originalItem.itemName,
-                               quantity: card.querySelector('.quantity-input')?.value || null,
-                               notes: card.querySelector('.notes-input')?.value || '',
-                               timestamp: originalItem.timestamp
-                           };
-                       });
+        if (!isEditMode) {
+            // Your existing save changes code
+            try {
+                const updatedNeeds = Array.from(document.querySelectorAll('#needsList .item-card')).map((card, index) => {
+                    const originalItem = userData.needs[index];
+                    const urgencySelector = card.querySelector('.urgency-selector');
+                    const activeUrgency = urgencySelector.querySelector('.urgency-segment.active');
+                    
+                    return {
+                        itemName: originalItem.itemName,
+                        quantity: card.querySelector('.quantity-input')?.value || null,
+                        urgency: activeUrgency ? activeUrgency.getAttribute('data-urgency') : originalItem.urgency,
+                        notes: card.querySelector('.notes-input')?.value || '',
+                        timestamp: originalItem.timestamp
+                    };
+                });
 
-                       const userRef = firebase.firestore().collection('users').doc(user.uid);
-                       await userRef.update({
-                           needs: updatedNeeds,
-                           canDonate: updatedDonations
-                       });
+                const updatedDonations = Array.from(document.querySelectorAll('#donationsList .item-card')).map((card, index) => {
+                    const originalItem = userData.canDonate[index];
+                    return {
+                        itemName: originalItem.itemName,
+                        quantity: card.querySelector('.quantity-input')?.value || null,
+                        notes: card.querySelector('.notes-input')?.value || '',
+                        timestamp: originalItem.timestamp
+                    };
+                });
 
-                       userData.needs = updatedNeeds;
-                       userData.canDonate = updatedDonations;
-                   } catch (error) {
-                       console.error('Error saving changes:', error);
-                       alert('Failed to save changes. Please try again.');
-                       return;
-                   }
-               }
+                const userRef = firebase.firestore().collection('users').doc(user.uid);
+                await userRef.update({
+                    needs: updatedNeeds,
+                    canDonate: updatedDonations
+                });
 
-               renderItems(document.getElementById('needsList'), userData.needs, 'needs');
-               renderItems(document.getElementById('donationsList'), userData.canDonate, 'donations');
-           });
+                userData.needs = updatedNeeds;
+                userData.canDonate = updatedDonations;
+            } catch (error) {
+                console.error('Error saving changes:', error);
+                alert('Failed to save changes. Please try again.');
+                return;
+            }
+        }
+
+        renderItems(document.getElementById('needsList'), userData.needs, 'needs');
+        renderItems(document.getElementById('donationsList'), userData.canDonate, 'donations');
+
+    } catch (error) {
+        console.error('Error toggling edit mode:', error);
+        alert('Failed to toggle edit mode. Please try again.');
+    }
+});
 
            renderItems(document.getElementById('needsList'), userData.needs, 'needs');
            renderItems(document.getElementById('donationsList'), userData.canDonate, 'donations');
@@ -175,25 +188,31 @@
                ` : '';
 
                itemCard.innerHTML = `
-                    <div class="item-content">
-                        <div class="item-header" style="position: relative;">
-                            <h3 class="item-name">${item.itemName}</h3>
-                            <button class="delete-btn" onclick="deleteItem('${type}', ${index})" style="position: absolute; top: 0; right: 0;">×</button>
+                <div class="item-content">
+                    <div class="item-header" style="position: relative;">
+                        <h3 class="item-name">${item.itemName}</h3>
+                        <button class="delete-btn" onclick="deleteItem('${type}', ${index})" style="position: absolute; top: 0; right: 0;">×</button>
+                    </div>
+                    <div class="item-details">
+                        <div class="input-field" style="text-align: center;">
+                            <label>Quantity:</label>
+                            <input type="number" 
+                                class="quantity-input styled-input" 
+                                value="${item.quantity || ''}" 
+                                min="1" 
+                                placeholder="Optional"
+                                style="width: auto; text-align: center;">
                         </div>
-                        <div class="item-details">
-                            <div class="quantity-field">
-                                <label>Quantity:</label>
-                                <input type="number" class="quantity-input" value="${item.quantity || ''}" min="1" placeholder="Optional">
-                            </div>
-                            ${urgencySelector}
-                            <div class="notes-field">
-                                <label>Notes:</label>
-                                <textarea class="notes-input">${item.notes || ''}</textarea>
-                            </div>
+                        ${urgencySelector}
+                        <div class="input-field" style="width: 100%;">
+                            <label>Notes:</label>
+                            <textarea class="notes-input styled-input" rows="3">${item.notes || ''}</textarea>
                         </div>
                     </div>
-                `;
-           } else {
+                </div>
+            `;
+
+                    } else {
             const urgencyDisplay = type === 'needs' ? `
                 <div class="input-group urgency-group">
                     <div class="urgency-selector">
@@ -204,16 +223,16 @@
                 </div>
             ` : '';
 
-               itemCard.innerHTML = `
-                   <div class="item-content">
-                       <h3 class="item-name">${item.itemName}</h3>
-                       ${item.quantity ? `<p class="item-quantity">Quantity: ${item.quantity}</p>` : ''}
-                       ${urgencyDisplay}
-                       ${item.notes ? `<p class="item-notes">${item.notes}</p>` : ''}
-                       <p class="timestamp">Added: ${new Date(item.timestamp).toLocaleDateString()}</p>
-                   </div>
-               `;
-           }
+            itemCard.innerHTML = `
+                <div class="item-content">
+                    <h3 class="item-name">${item.itemName}</h3>
+                    ${item.quantity ? `<p class="item-quantity">Quantity: ${item.quantity}</p>` : ''}
+                    ${urgencyDisplay}
+                    <p class="timestamp">Added: ${new Date(item.timestamp).toLocaleDateString()}</p>
+                </div>
+                ${item.notes ? `<p class="item-notes">${item.notes}</p>` : ''}
+            `;
+        }
 
            container.appendChild(itemCard);
        });
@@ -256,6 +275,230 @@
            window.location.href = url.toString();
        }
    }
+
+   async function goToDashboard(event) {
+       event.preventDefault();
+       const user = firebase.auth().currentUser;
+       if (user) {
+           const token = await user.getIdToken();
+           const url = new URL('/neighbor-dashboard', window.location.origin);
+           url.searchParams.append('token', token);
+           window.location.href = url.toString();
+       }
+   }
+
+   function addNeeds() {
+    const popup = document.createElement('div');
+    popup.className = 'popup';
+    popup.innerHTML = `
+        <div class="popup-content form-popup">
+            <h2>Add What You Need</h2>
+            <form id="needsForm">
+                <div id="needsContainer">
+                    <div class="needs-row">
+                        <div class="input-group">
+                            <label for="itemName_0">Item</label>
+                            <input type="text" id="itemName_0" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="quantity_0">Quantity</label>
+                            <input type="number" id="quantity_0" min="1" placeholder="Optional">
+                        </div>
+                        <div class="input-group urgency-group">
+                            <label>Urgency</label>
+                            <div class="urgency-selector" id="urgency_0">
+                                <div class="urgency-segment low-urgency" data-urgency="low" onclick="selectUrgency(this)">Low</div>
+                                <div class="urgency-segment medium-urgency" data-urgency="medium" onclick="selectUrgency(this)">Medium</div>
+                                <div class="urgency-segment high-urgency" data-urgency="high" onclick="selectUrgency(this)">High</div>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="notes_0">Notes</label>
+                            <input type="text" id="notes_0">
+                        </div>
+                    </div>
+                </div>
+                <button type="button" onclick="addNeedRow()" class="add-row-btn">+ Add Another Item</button>
+                <div class="form-buttons">
+                    <button type="submit">Submit</button>
+                    <button type="button" onclick="closePopup()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    `;
+    document.body.appendChild(popup);
+
+    let rowCount = 1;
+
+    window.addNeedRow = function() {
+        const container = document.getElementById('needsContainer');
+        const newRow = document.createElement('div');
+        newRow.className = 'needs-row';
+        newRow.innerHTML = `
+            <div class="input-group">
+                <label for="itemName_${rowCount}">Item</label>
+                <input type="text" id="itemName_${rowCount}" required>
+            </div>
+            <div class="input-group">
+                <label for="quantity_${rowCount}">Quantity</label>
+                <input type="number" id="quantity_${rowCount}" min="1" placeholder="Optional">
+            </div>
+            <div class="input-group urgency-group">
+                <label>Urgency</label>
+                <div class="urgency-selector" id="urgency_${rowCount}">
+                    <div class="urgency-segment low-urgency" data-urgency="low" onclick="selectUrgency(this)">Low</div>
+                    <div class="urgency-segment medium-urgency" data-urgency="medium" onclick="selectUrgency(this)">Medium</div>
+                    <div class="urgency-segment high-urgency" data-urgency="high" onclick="selectUrgency(this)">High</div>
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="notes_${rowCount}">Notes</label>
+                <input type="text" id="notes_${rowCount}">
+            </div>
+            <button type="button" class="remove-row-btn" onclick="this.parentElement.remove()">×</button>
+        `;
+        container.appendChild(newRow);
+        rowCount++;
+    };
+
+    document.getElementById('needsForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+            const user = firebase.auth().currentUser;
+            const needItems = [];
+
+            const rows = document.querySelectorAll('.needs-row');
+            rows.forEach((row, index) => {
+                const quantity = document.getElementById(`quantity_${index}`).value;
+                const urgencySelector = document.getElementById(`urgency_${index}`);
+                const activeUrgency = urgencySelector.querySelector('.active');
+                
+                needItems.push({
+                    itemName: document.getElementById(`itemName_${index}`).value,
+                    quantity: quantity ? parseInt(quantity) : null,
+                    urgency: activeUrgency ? activeUrgency.dataset.urgency : 'low',
+                    notes: document.getElementById(`notes_${index}`).value,
+                    timestamp: new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })
+                });
+            });
+
+            const userRef = firebase.firestore().collection('users').doc(user.uid);
+            const userDoc = await userRef.get();
+            const userData = userDoc.data();
+            
+            await userRef.update({
+                needs: [...(userData.needs || []), ...needItems]
+            });
+
+            closePopup();
+            // Refresh the display
+            renderItems(document.getElementById('needsList'), [...(userData.needs || []), ...needItems], 'needs');
+        } catch (error) {
+            console.error('Error adding needs:', error);
+            alert('Error adding needs. Please try again.');
+        }
+    });
+}
+
+function addDonations() {
+    const popup = document.createElement('div');
+    popup.className = 'popup';
+    popup.innerHTML = `
+        <div class="popup-content form-popup">
+            <h2>Add What You Can Donate</h2>
+            <form id="donateForm">
+                <div id="donationsContainer">
+                    <div class="needs-row">
+                        <div class="input-group">
+                            <label for="itemName_0">Item</label>
+                            <input type="text" id="itemName_0" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="quantity_0">Quantity</label>
+                            <input type="number" id="quantity_0" min="1" placeholder="Optional">
+                        </div>
+                        <div class="input-group">
+                            <label for="notes_0">Notes</label>
+                            <input type="text" id="notes_0">
+                        </div>
+                    </div>
+                </div>
+                <button type="button" onclick="addDonationRow()" class="add-row-btn">+ Add Another Item</button>
+                <div class="form-buttons">
+                    <button type="submit">Submit</button>
+                    <button type="button" onclick="closePopup()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    `;
+    document.body.appendChild(popup);
+
+    let rowCount = 1;
+
+    window.addDonationRow = function() {
+        const container = document.getElementById('donationsContainer');
+        const newRow = document.createElement('div');
+        newRow.className = 'needs-row';
+        newRow.innerHTML = `
+            <div class="input-group">
+                <label for="itemName_${rowCount}">Item</label>
+                <input type="text" id="itemName_${rowCount}" required>
+            </div>
+            <div class="input-group">
+                <label for="quantity_${rowCount}">Quantity</label>
+                <input type="number" id="quantity_${rowCount}" min="1" placeholder="Optional">
+            </div>
+            <div class="input-group">
+                <label for="notes_${rowCount}">Notes</label>
+                <input type="text" id="notes_${rowCount}">
+            </div>
+            <button type="button" class="remove-row-btn" onclick="this.parentElement.remove()">×</button>
+        `;
+        container.appendChild(newRow);
+        rowCount++;
+    };
+
+    document.getElementById('donateForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+            const user = firebase.auth().currentUser;
+            const donationItems = [];
+
+            const rows = document.querySelectorAll('.needs-row');
+            rows.forEach((row, index) => {
+                const quantity = document.getElementById(`quantity_${index}`).value;
+                donationItems.push({
+                    itemName: document.getElementById(`itemName_${index}`).value,
+                    quantity: quantity ? parseInt(quantity) : null,
+                    notes: document.getElementById(`notes_${index}`).value,
+                    timestamp: new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })
+                });
+            });
+
+            const userRef = firebase.firestore().collection('users').doc(user.uid);
+            const userDoc = await userRef.get();
+            const userData = userDoc.data();
+
+            await userRef.update({
+                canDonate: [...(userData.canDonate || []), ...donationItems]
+            });
+
+            closePopup();
+            // Refresh the display
+            renderItems(document.getElementById('donationsList'), [...(userData.canDonate || []), ...donationItems], 'donations');
+        } catch (error) {
+            console.error('Error adding donations:', error);
+            alert('Error adding donations. Please try again.');
+        }
+    });
+}
+
+function closePopup() {
+    const popup = document.querySelector('.popup');
+    if (popup) {
+        popup.remove();
+    }
+}
    </script>
 </body>
 </html>

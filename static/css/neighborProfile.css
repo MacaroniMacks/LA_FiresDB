@@ -20,8 +20,15 @@ body {
 }
 
 .nav-brand {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
     font-size: 1.25rem;
     font-weight: 600;
+}
+
+.nav-brand:hover {
+    text-decoration: none;
 }
 
 .nav-links {
@@ -475,8 +482,9 @@ input[type="number"]::placeholder {
 .edit-button-container {
     display: flex;
     justify-content: center;
-    padding: 1rem 0;
+    padding: 0.5rem 0;  /* Reduced from 1rem */
     background-color: #f5f5f5;
+    margin-bottom: -35px;
 }
 
 .edit-profile-btn {
@@ -486,6 +494,7 @@ input[type="number"]::placeholder {
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    /* Removed margin: 1rem auto; since the container already handles spacing */
 }
 
 .item-card {
@@ -617,4 +626,40 @@ input[type="number"]::placeholder {
 /* or more specifically */
 .urgency-selector .urgency-segment[onclick] {
     cursor: pointer;
+}
+
+.item-notes {
+    width: 100%;   /* Make sure item-content takes full width */
+    text-align: center;
+}
+
+.input-field {
+    margin: 1rem 0;
+}
+
+.input-field label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #333;
+}
+
+.styled-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.styled-input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
+}
+
+textarea.styled-input {
+    resize: vertical;
+    min-height: 80px;
 }
