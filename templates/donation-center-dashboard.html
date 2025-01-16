@@ -8,7 +8,7 @@
 </head>
 <body>
     <nav class="navbar">
-        <div class="nav-brand">EnergyBalance</div>
+        <div class="nav-brand">Help626</div>
         <div class="nav-links">
             <span id="userEmail"></span>
             <button onclick="logout()" class="logout-btn">Logout</button>
@@ -17,20 +17,71 @@
 
     <div class="dashboard-container">
         <div class="tabs">
-            <div class="tab active" onclick="switchTab('dashboard')">Dashboard</div>
-            <div class="tab" onclick="switchTab('campaigns')">Campaigns</div>
+            <div class="tab active" onclick="switchTab('analytics')">Analytics</div>
+            <div class="tab" onclick="switchTab('profile')">Profile</div>
         </div>
 
-        <div id="dashboard" class="tab-content active">
-            <!-- Dashboard content will go here -->
-            <h2>Welcome to your Customer Dashboard</h2>
-            <p>Placeholder for dashboard content</p>
+        <div id="analytics" class="tab-content active">
+            <h2>Welcome to your Analytics Dashboard</h2>
+            <div class="filter-section">
+                <select id="radiusFilter" onchange="updateAnalytics(centerLocation)">
+                    <option value="5">Within 5 miles</option>
+                    <option value="10">Within 10 miles</option>
+                    <option value="25">Within 25 miles</option>
+                    <option value="50">Within 50 miles</option>
+                    <option value="999">Any distance</option>
+                </select>
+
+                <select id="itemFilter" onchange="updateAnalytics(centerLocation)">
+                    <option value="food">Food</option>
+                    <option value="clothing">Clothing</option>
+                    <option value="hygiene">Hygiene Products</option>
+                    <option value="supplies">General Supplies</option>
+                </select>
+            </div>
+
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <h3>Item Demand Analysis</h3>
+                    <div id="demandStats">
+                        <div class="stat-row">
+                            <span class="stat-label">Total Neighbors Needing:</span>
+                            <span id="totalNeeding" class="stat-value">0</span>
+                        </div>
+                        <div class="urgency-breakdown">
+                            <div class="urgency-bar empty">
+                                <div class="urgency-segment high" id="highUrgency"></div>
+                                <div class="urgency-segment medium" id="mediumUrgency"></div>
+                                <div class="urgency-segment low" id="lowUrgency"></div>
+                            </div>
+                            <div class="urgency-legend">
+                                <span class="high">High</span>
+                                <span class="medium">Medium</span>
+                                <span class="low">Low</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analytics-card">
+                    <h3>Available Supply</h3>
+                    <div id="supplyStats">
+                        <div class="stat-row">
+                            <span class="stat-label">Neighbors Able to Donate:</span>
+                            <span id="totalDonors" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Total Items Available:</span>
+                            <span id="totalItems" class="stat-value">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div id="campaigns" class="tab-content" style="display: none;">
-            <!-- Campaigns content will go here -->
-            <h2>Campaigns</h2>
-            <p>Placeholder for campaigns content</p>
+        <div id="profile" class="tab-content" style="display: none;">
+            <h2>Profile</h2>
+            <p>Placeholder for profile content</p>
         </div>
     </div>
 
@@ -46,56 +97,167 @@
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 
     <script>
-        // Tab switching function
+        let centerLocation;
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 3959; // Earth's radius in miles
+            const dLat = toRad(lat2 - lat1);
+            const dLon = toRad(lon2 - lon1);
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        function toRad(degrees) {
+            return degrees * (Math.PI/180);
+        }
+
+        async function updateAnalytics(centerLocation) {
+            // Add this check at the start of the function
+            if (!centerLocation || !centerLocation.latitude || !centerLocation.longitude) {
+                console.log('Location not yet initialized');
+                return;
+            }
+
+            const radius = parseFloat(document.getElementById('radiusFilter').value);
+            const itemCategory = document.getElementById('itemFilter').value;
+            
+            try {
+                const neighborsSnapshot = await firebase.firestore()
+                    .collection('users')
+                    .where('isDonationCenter', '==', false)
+                    .get();
+
+                let needsCount = { high: 0, medium: 0, low: 0 };
+                let donorsCount = 0;
+                let totalItemsAvailable = 0;
+
+                neighborsSnapshot.forEach(doc => {
+                    const neighborData = doc.data();
+                    
+                    if (!neighborData.location) return;
+
+                    const distance = calculateDistance(
+                        centerLocation.latitude,
+                        centerLocation.longitude,
+                        neighborData.location.latitude,
+                        neighborData.location.longitude
+                    );
+
+                    if (distance <= radius || radius === 999) {
+                        // Count needs by urgency
+                        if (neighborData.needs) {
+                            neighborData.needs.forEach(need => {
+                                if (need.category === itemCategory) {
+                                    needsCount[need.urgency || 'low']++;
+                                }
+                            });
+                        }
+
+                        // Count available donations
+                        if (neighborData.canDonate) {
+                            let hasDonatable = false;
+                            neighborData.canDonate.forEach(item => {
+                                if (item.category === itemCategory) {
+                                    hasDonatable = true;
+                                    if (item.quantity > 0) {
+                                        totalItemsAvailable += item.quantity;
+                                    }
+                                }
+                            });
+                            if (hasDonatable) donorsCount++;
+                        }
+                    }
+                });
+
+                // Calculate total needs and update urgency bar
+                const totalNeeds = needsCount.high + needsCount.medium + needsCount.low;
+                const urgencyBarContainer = document.querySelector('.urgency-bar');
+                const highUrgencyEl = document.getElementById('highUrgency');
+                const mediumUrgencyEl = document.getElementById('mediumUrgency');
+                const lowUrgencyEl = document.getElementById('lowUrgency');
+
+                if (totalNeeds === 0) {
+                    urgencyBarContainer.classList.add('empty');
+                } else {
+                    urgencyBarContainer.classList.remove('empty');
+                    highUrgencyEl.style.width = `${(needsCount.high / totalNeeds * 100) || 0}%`;
+                    mediumUrgencyEl.style.width = `${(needsCount.medium / totalNeeds * 100) || 0}%`;
+                    lowUrgencyEl.style.width = `${(needsCount.low / totalNeeds * 100) || 0}%`;
+                }
+
+                // Update the total counts in the UI
+                document.getElementById('totalNeeding').textContent = totalNeeds.toString();
+                document.getElementById('totalDonors').textContent = donorsCount.toString();
+                document.getElementById('totalItems').textContent = totalItemsAvailable.toString();
+
+            } catch (error) {
+                console.error('Error updating analytics:', error);
+            }
+        }
+
         function switchTab(tabName) {
-            // Remove active class from all tabs and tab contents
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
-
-            // Add active class to selected tab
             document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
-            
-            // Show selected tab content
             document.getElementById(tabName).style.display = 'block';
         }
 
-        // Initialize dashboard
         document.addEventListener('DOMContentLoaded', async () => {
             try {
-                // Get token
-                const token = localStorage.getItem('authToken');
+                const urlParams = new URLSearchParams(window.location.search);
+                const token = urlParams.get('token');
+
                 if (!token) {
                     console.log('No token found');
                     window.location.href = '/login';
                     return;
                 }
 
-                // Set up auth header for all fetch requests first
-                const originalFetch = window.fetch;
-                window.fetch = function() {
-                    let [resource, config] = arguments;
-                    config = config || {};
-                    config.headers = config.headers || {};
-                    config.headers['Authorization'] = `Bearer ${token}`;
-                    return originalFetch(resource, config);
-                };
-
-                // Then set up Firebase auth listener
                 firebase.auth().onAuthStateChanged(async (user) => {
                     if (user) {
-                        const userDoc = await firebase.firestore()
-                            .collection('users')
-                            .doc(user.uid)
-                            .get();
-                        
-                        const userData = userDoc.data();
-                        document.getElementById('userEmail').textContent = user.email;
+                        try {
+                            const userDoc = await firebase.firestore()
+                                .collection('users')
+                                .doc(user.uid)
+                                .get();
+                            
+                            const userData = userDoc.data();
+                            document.getElementById('userEmail').textContent = user.email;
 
-                        if (!userData.isDonationCenter) {
-                            window.location.href = '/neighbor-dashboard';
+                            if (!userData.isDonationCenter) {
+                                window.location.href = '/neighbor-dashboard';
+                                return;
+                            }
+
+                            // Robust location validation
+                            if (!userData.location || 
+                                typeof userData.location.latitude !== 'number' || 
+                                typeof userData.location.longitude !== 'number') {
+                                console.error('Invalid location data');
+                                window.location.href = '/setup-location';
+                                return;
+                            }
+
+                            // Set centerLocation with explicit type checking
+                            centerLocation = {
+                                latitude: Number(userData.location.latitude),
+                                longitude: Number(userData.location.longitude)
+                            };
+
+                            // Call updateAnalytics immediately after setting location
+                            await updateAnalytics(centerLocation);
+
+                        } catch (error) {
+                            console.error('Error initializing user data:', error);
+                            window.location.href = '/login';
                         }
+                    } else {
+                        window.location.href = '/login';
                     }
-                    // Don't redirect to login here - just don't load content
                 });
 
             } catch (error) {

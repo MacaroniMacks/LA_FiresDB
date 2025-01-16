@@ -1,27 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-   <meta charset="UTF-8">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Neighbor Dashboard</title>
-   <link rel="stylesheet" href="/static/css/neighborDash.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neighbor Dashboard</title>
+    <link rel="stylesheet" href="/static/css/neighborDash.css">
 </head>
 <body>
-   <nav class="navbar">
-       <div class="nav-brand">Help626</div>
-       <div class="nav-links">
-        <a href="#" id="userEmail" onclick="goToProfile(event)"></a>
-        <button onclick="logout()" class="logout-btn">Logout</button>
-    </div>      
-   </nav>
+    <nav class="navbar">
+        <div class="nav-brand">Help626</div>
+        <div class="nav-links">
+            <a href="#" id="userEmail" onclick="goToProfile(event)"></a>
+            <button onclick="logout()" class="logout-btn">Logout</button>
+        </div>              
+    </nav>
 
-   <div class="dashboard-container">
-       <div id="campaigns" class="tab-content">
-           <div id="requestsList">
-               <!-- Requests will be loaded here dynamically -->
-           </div>
-       </div>
-   </div>
+    <div class="dashboard-container">
+        <div class="filter-section">
+            <select id="radiusFilter" onchange="updateDonationCenters(userData)">
+                <option value="5">Within 5 miles</option>
+                <option value="10">Within 10 miles</option>
+                <option value="25">Within 25 miles</option>
+                <option value="50">Within 50 miles</option>
+                <option value="999">Any distance</option>
+            </select>
+        </div>
+
+        <div id="donationCentersList" class="centers-list">
+            <!-- Centers will be loaded here dynamically -->
+        </div>
+    </div>
 
    <!-- Firebase SDKs -->
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -35,61 +43,195 @@
    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 
    <script>
-       document.addEventListener('DOMContentLoaded', async () => {
-           try {
-               const urlParams = new URLSearchParams(window.location.search);
-               const token = urlParams.get('token');
+let userLocation = null;
 
-               if (!token) {
-                   console.log('No token found in URL');
-                   window.location.href = '/login';
-                   return;
-               }
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 3959; // Earth's radius in miles
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+}
 
-               await new Promise((resolve) => {
-                   const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
-                       unsubscribe();
-                       resolve(user);
-                   });
-               });
+function toRad(degrees) {
+    return degrees * (Math.PI/180);
+}
 
-               const user = firebase.auth().currentUser;
-               if (!user) {
-                   console.log('No user found');
-                   window.location.href = '/login';
-                   return;
-               }
+async function updateDonationCenters(userData) {
+    const radius = parseFloat(document.getElementById('radiusFilter').value);
+    
+    try {
+        const centersSnapshot = await firebase.firestore()
+            .collection('users')
+            .where('isDonationCenter', '==', true)
+            .get();
 
-               const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
-               const userData = userDoc.data();
+        const centersList = document.getElementById('donationCentersList');
+        centersList.innerHTML = '';
 
-               document.getElementById('userEmail').textContent = user.email;
+        centersSnapshot.forEach(doc => {
+            const centerData = doc.data();
+            
+            if (!centerData.location) return;
 
-               if ((!userData.canDonate || userData.canDonate.length === 0) && 
-                   (!userData.needs || userData.needs.length === 0)) {
-                   const popup = document.createElement('div');
-                   popup.className = 'popup';
-                   popup.innerHTML = `
-                    <div class="popup-content">
-                        <h2>Welcome!</h2>
-                        <p>Let's get started by adding what you need or what you can donate.</p>
-                        <div class="popup-buttons">
-                            <button onclick="addNeeds()">Add Needs</button>
-                            <button onclick="addDonations()">Add Donations</button>
+            const distance = calculateDistance(
+                userLocation.latitude,
+                userLocation.longitude,
+                centerData.location.latitude,
+                centerData.location.longitude
+            );
+
+            if (distance <= radius || radius === 999) {
+                const centerCard = document.createElement('div');
+                centerCard.className = 'center-card';
+                centerCard.innerHTML = `
+                    <div class="center-info">
+                        <h3>${centerData.centerName || 'Unnamed Center'}</h3>
+                        <p class="distance">${distance.toFixed(1)} miles away</p>
+                        ${centerData.needs && centerData.needs.length > 0 ? `
+                        ` : '<p>No current needs listed</p>'}
+                    </div>
+                    <div class="matches-container">
+                        <div class="matches-section matches-needs">
+                            <h4>Items They Have That You Need</h4>
+                            <ul>
+                                ${findMatches(userData?.needs || [], centerData?.inventory || []).map(match => `
+                                    <li>
+                                        <span class="match-item">${match.itemName}</span>
+                                        ${match.quantity ? `<span class="match-quantity">(${match.quantity} available)</span>` : ''}
+                                    </li>
+                                `).join('') || '<li class="no-matches">No matching items</li>'}
+                            </ul>
                         </div>
-                        <div class="form-buttons" style="margin-top: 1rem;">
-                            <button onclick="closePopup()" type="button">Cancel</button>
+                        <div class="matches-section matches-donations">
+                            <h4>Items You Can Donate That They Need</h4>
+                            <ul>
+                                ${findMatches(userData?.canDonate || [], centerData?.needs || []).map(match => `
+                                    <li>
+                                        <span class="match-item">${match.itemName}</span>
+                                        ${match.quantity ? `<span class="match-quantity">(${match.quantity} needed)</span>` : ''}
+                                        ${match.urgency ? `<span class="urgency-tag ${match.urgency}-urgency">${match.urgency}</span>` : ''}
+                                    </li>
+                                `).join('') || '<li class="no-matches">No matching items</li>'}
+                            </ul>
                         </div>
                     </div>
                 `;
-                   document.body.appendChild(popup);
-               }
+                centersList.appendChild(centerCard);
+            }
+        });
 
-           } catch (error) {
-               console.error('Dashboard initialization error:', error);
-               window.location.href = '/login';
-           }
-       });
+        if (centersList.children.length === 0) {
+            centersList.innerHTML = `
+                <div class="no-centers">
+                    No donation centers found within ${radius} miles
+                </div>
+            `;
+        }
+
+    } catch (error) {
+        console.error('Error fetching donation centers:', error);
+    }
+}
+
+// Updated findMatches function with better null checks
+function findMatches(userItems = [], centerItems = []) {
+    if (!Array.isArray(userItems) || !Array.isArray(centerItems)) return [];
+    
+    return userItems.filter(userItem => 
+        centerItems.some(centerItem => 
+            userItem?.itemName?.toLowerCase() === centerItem?.itemName?.toLowerCase()
+        )
+    ).map(userItem => {
+        const centerItem = centerItems.find(item => 
+            item?.itemName?.toLowerCase() === userItem?.itemName?.toLowerCase()
+        );
+        return {
+            ...centerItem,
+            quantity: centerItem?.quantity || userItem?.quantity,
+            itemName: userItem?.itemName || 'Unnamed Item'
+        };
+    });
+}
+function viewCenter(centerId) {
+    // Implement center details view
+    console.log('Viewing center:', centerId);
+}
+
+       document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+
+        if (!token) {
+            console.log('No token found in URL');
+            window.location.href = '/login';
+            return;
+        }
+
+        await new Promise((resolve) => {
+            const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
+                unsubscribe();
+                resolve(user);
+            });
+        });
+
+        const user = firebase.auth().currentUser;
+        if (!user) {
+            console.log('No user found');
+            window.location.href = '/login';
+            return;
+        }
+
+        const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
+        const userData = userDoc.data();
+
+        document.getElementById('userEmail').textContent = user.email;
+
+        // Check and store user location
+        userLocation = userData.location;
+        if (!userLocation) {
+            window.location.href = '/setup-location';
+            return;
+        }
+
+        // Initialize centers list
+        updateDonationCenters(userData);
+
+        document.getElementById('radiusFilter').addEventListener('change', () => {
+            updateDonationCenters(userData);  // Pass userData here too
+        });
+
+        // Show welcome popup if needed
+        if ((!userData.canDonate || userData.canDonate.length === 0) && 
+            (!userData.needs || userData.needs.length === 0)) {
+            const popup = document.createElement('div');
+            popup.className = 'popup';
+            popup.innerHTML = `
+                <div class="popup-content">
+                    <h2>Welcome!</h2>
+                    <p>Let's get started by adding what you need or what you can donate.</p>
+                    <div class="popup-buttons">
+                        <button onclick="addNeeds()">Add Needs</button>
+                        <button onclick="addDonations()">Add Donations</button>
+                    </div>
+                    <div class="form-buttons" style="margin-top: 1rem;">
+                        <button onclick="closePopup()" type="button">Cancel</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(popup);
+        }
+
+    } catch (error) {
+        console.error('Dashboard initialization error:', error);
+        window.location.href = '/login';
+    }
+});
 
        function showInitialPopup() {
             const popup = document.querySelector('.popup');
