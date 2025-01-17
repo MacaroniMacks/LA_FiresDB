@@ -10,7 +10,7 @@
     <nav class="navbar">
         <div class="nav-brand">Help626</div>
         <div class="nav-links">
-            <span id="userEmail"></span>
+            <a href="#" id="userEmail" onclick="goToProfile(event)"></a>
             <button onclick="logout()" class="logout-btn">Logout</button>
         </div>              
     </nav>
@@ -80,10 +80,162 @@
         </div>
 
         <div id="profile" class="tab-content" style="display: none;">
-            <h2>Profile</h2>
-            <p>Placeholder for profile content</p>
+            <!-- Preview section at top -->
+            <div class="preview-section">
+                <div class="how-neighbors-see">How Neighbors Will See Your Center</div>
+                <div id="centerCardPreview" class="center-card">
+                    <!-- Center header with address -->
+                    <div class="center-header">
+                        <div class="center-main-info">
+                            <h3 id="previewCenterName">Unnamed Center</h3>
+                            <p id="previewPhone" class="contact-detail"></p>
+                            <p id="previewEmail" class="contact-detail"></p>
+                        </div>
+                        <div class="center-location">
+                            <p id="previewAddress"></p>
+                            <p class="distance" id="previewDistance">0 miles away</p>
+                            <div class="center-hours" id="hoursOfOperation">
+                                <h4>Hours of Operation</h4>
+                                <div class="hours-popup">
+                                    <div id="centerHours"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            
+                    <!-- Additional Information -->
+                    <div class="additional-info">
+                        <h4>Additional Information</h4>
+                        <p id="previewNotes">Hey what's up big dog</p>
+                    </div>
+            
+                    <div class="matches-container">
+                        <div class="matches-section matches-needs">
+                            <h4>Center's Inventory</h4>
+                            <ul id="previewInventory">
+                                <li class="no-matches">Center currently hasn't set up inventory</li>
+                            </ul>
+                        </div>
+                        <div class="matches-section matches-donations">
+                            <h4>Center's Needs</h4>
+                            <ul id="previewNeeds">
+                                <li>
+                                    <span class="match-item">Food</span>
+                                    <span class="match-quantity">(high)</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- Full width center information section below -->
+            <div class="center-info-section">
+                <div class="profile-settings">
+                    <h2>Center Information</h2>
+                    <div class="settings-grid">
+                        <!-- Top Row -->
+                        <div class="settings-section">
+                            <h3>Hours of Operation</h3>
+                            <div class="hours-grid">
+                                <div class="day-row">
+                                    <label>M</label>
+                                    <input type="time" id="monOpen">
+                                    <span>to</span>
+                                    <input type="time" id="monClose">
+                                </div>
+                                <div class="day-row">
+                                    <label>T</label>
+                                    <input type="time" id="tueOpen">
+                                    <span>to</span>
+                                    <input type="time" id="tueClose">
+                                </div>
+                                <div class="day-row">
+                                    <label>W</label>
+                                    <input type="time" id="wedOpen">
+                                    <span>to</span>
+                                    <input type="time" id="wedClose">
+                                </div>
+                                <div class="day-row">
+                                    <label>TH</label>
+                                    <input type="time" id="thuOpen">
+                                    <span>to</span>
+                                    <input type="time" id="thuClose">
+                                </div>
+                                <div class="day-row">
+                                    <label>F</label>
+                                    <input type="time" id="friOpen">
+                                    <span>to</span>
+                                    <input type="time" id="friClose">
+                                </div>
+                                <div class="day-row">
+                                    <label>SAT</label>
+                                    <input type="time" id="satOpen">
+                                    <span>to</span>
+                                    <input type="time" id="satClose">
+                                </div>
+                                <div class="day-row">
+                                    <label>SUN</label>
+                                    <input type="time" id="sunOpen">
+                                    <span>to</span>
+                                    <input type="time" id="sunClose">
+                                </div>
+                                
+                            </div>
+                        </div>
+                
+                        <div class="settings-section">
+                            <h3>Contact Information</h3>
+                            <div class="form-group">
+                                <label for="phoneNumber">Phone Number</label>
+                                <input type="tel" id="phoneNumber" placeholder="(626) 555-0123">
+                            </div>
+                            <div class="form-group">
+                                <label for="contactEmail">Contact Email</label>
+                                <input type="email" id="contactEmail" placeholder="contact@help626.org">
+                            </div>
+                        </div>
+                
+                        <!-- Bottom Row -->
+                        <div class="settings-section">
+                            <h3>Location Information</h3>
+                            <div class="form-group">
+                                <label for="streetAddress">Street Address</label>
+                                <input type="text" id="streetAddress" placeholder="123 Main St">
+                            </div>
+                            <div class="form-group">
+                                <label for="unit">Unit/Suite (Optional)</label>
+                                <input type="text" id="unit" placeholder="Suite 100">
+                            </div>
+                            <div class="address-group">
+                                <div class="form-group">
+                                    <label for="city">City</label>
+                                    <input type="text" id="city" placeholder="Pasadena">
+                                </div>
+                                <div class="form-group">
+                                    <label for="zipCode">ZIP Code</label>
+                                    <input type="text" id="zipCode" placeholder="91101">
+                                </div>
+                            </div>
+                        </div>
+                
+                        <div class="settings-section">
+                            <h3>Additional Notes</h3>
+                            <div class="form-group">
+                                <label for="centerNotes">Notes (visible to neighbors)</label>
+                                <textarea id="centerNotes" rows="5" placeholder="Enter any additional information that neighbors should know about your center..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-actions">
+                        <button class="save-btn" onclick="saveProfileChanges()">Save Changes</button>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+
+            
+        </div>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -115,89 +267,350 @@
             return degrees * (Math.PI/180);
         }
 
-        async function updateAnalytics(centerLocation) {
-            // Add this check at the start of the function
-            if (!centerLocation || !centerLocation.latitude || !centerLocation.longitude) {
-                console.log('Location not yet initialized');
+        function updateCenterCardPreview(userData) {
+    if (!userData) {
+        console.error('No user data provided to updateCenterCardPreview');
+        return;
+    }
+
+    // Update center name
+    const centerNameEl = document.getElementById('previewCenterName');
+    if (centerNameEl) {
+        centerNameEl.textContent = userData.centerName || 'Unnamed Center';
+    }
+
+    // Update address
+    const addressEl = document.getElementById('previewAddress');
+    if (addressEl && userData.addressInfo) {
+        const address = [
+            userData.addressInfo.street,
+            userData.addressInfo.city,
+            userData.addressInfo.zipCode
+        ].filter(Boolean).join(', ');
+        addressEl.textContent = address || 'Address not provided';
+    }
+
+    // Update distance
+    const distanceEl = document.getElementById('previewDistance');
+    if (distanceEl) {
+        distanceEl.textContent = '0 miles away';
+    }
+
+    // Update phone and email
+    const phoneEl = document.getElementById('previewPhone');
+    const emailEl = document.getElementById('previewEmail');
+    if (phoneEl && emailEl && userData.contactInfo) {
+        phoneEl.textContent = userData.contactInfo.phone || 'No phone number provided';
+        emailEl.textContent = userData.contactInfo.email || 'No email provided';
+    }
+
+    // Update hours
+    const hoursContainerEl = document.getElementById('centerHours');
+
+// Function to convert 24-hour time to 12-hour AM/PM format
+function convertTo12HourFormat(time) {
+    let [hour, minute] = time.split(':');
+    hour = parseInt(hour);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12;
+    hour = hour ? hour : 12; // the hour '0' should be '12'
+    minute = minute.padStart(2, '0');
+    return `${hour}:${minute} ${ampm}`;
+}
+
+if (hoursContainerEl && userData.operatingHours) {
+    let hoursContent = '';
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+    days.forEach(day => {
+        const dayHours = userData.operatingHours[day.toLowerCase()];
+        if (dayHours && dayHours.open && dayHours.close) {
+            const openTime = convertTo12HourFormat(dayHours.open);
+            const closeTime = convertTo12HourFormat(dayHours.close);
+            hoursContent += `<div class="day-hours">${day}: ${openTime} - ${closeTime}</div>`;
+        } else {
+            hoursContent += `<div class="day-hours">${day}: Closed</div>`;
+        }
+    });
+
+    hoursContainerEl.innerHTML = hoursContent;
+}
+
+
+    // Update notes
+    const notesEl = document.getElementById('previewNotes');
+    if (notesEl) {
+        notesEl.textContent = userData.centerNotes || 'No additional information provided';
+    }
+
+    // Update inventory
+    const inventoryListEl = document.getElementById('previewInventory');
+    if (inventoryListEl) {
+        if (Array.isArray(userData.inventory) && userData.inventory.length > 0) {
+            inventoryListEl.innerHTML = userData.inventory.map(item => `
+                <li>
+                    <span class="match-item">${item.itemName || 'Unnamed Item'}</span>
+                    ${item.quantity ? `<span class="match-quantity">(${item.quantity} available)</span>` : ''}
+                </li>
+            `).join('');
+        } else {
+            inventoryListEl.innerHTML = '<li class="no-matches">Center currently hasn\'t set up inventory</li>';
+        }
+    }
+
+    // Update needs
+    const needsListEl = document.getElementById('previewNeeds');
+    if (needsListEl) {
+        if (Array.isArray(userData.needs) && userData.needs.length > 0) {
+            needsListEl.innerHTML = userData.needs.map(need => `
+                <li>
+                    <span class="match-item">${need.itemName || 'Unnamed Item'}</span>
+                    ${need.quantity ? `<span class="match-quantity">(${need.quantity} needed)</span>` : ''}
+                    ${need.urgency ? `<span class="urgency-tag ${need.urgency}-urgency">${need.urgency}</span>` : ''}
+                </li>
+            `).join('');
+        } else {
+            needsListEl.innerHTML = '<li class="no-matches">Center currently hasn\'t set up needs</li>';
+        }
+    }
+}
+
+function loadCenterInformation(userData) {
+    if (!userData) return;
+
+    // Load hours
+    if (userData.operatingHours) {
+        const hours = userData.operatingHours;
+        if (hours.monday) {
+            document.getElementById('monOpen').value = hours.monday.open || '';
+            document.getElementById('monClose').value = hours.monday.close || '';
+        }
+        if (hours.tuesday) {
+            document.getElementById('tueOpen').value = hours.tuesday.open || '';
+            document.getElementById('tueClose').value = hours.tuesday.close || '';
+        }
+        if (hours.wednesday) {
+            document.getElementById('wedOpen').value = hours.wednesday.open || '';
+            document.getElementById('wedClose').value = hours.wednesday.close || '';
+        }
+        if (hours.thursday) {
+            document.getElementById('thuOpen').value = hours.thursday.open || '';
+            document.getElementById('thuClose').value = hours.thursday.close || '';
+        }
+        if (hours.friday) {
+            document.getElementById('friOpen').value = hours.friday.open || '';
+            document.getElementById('friClose').value = hours.friday.close || '';
+        }
+        if (hours.saturday) {
+            document.getElementById('satOpen').value = hours.saturday.open || '';
+            document.getElementById('satClose').value = hours.saturday.close || '';
+        }
+        if (hours.sunday) {
+            document.getElementById('sunOpen').value = hours.sunday.open || '';
+            document.getElementById('sunClose').value = hours.sunday.close || '';
+        }
+    }
+
+    // Load contact info
+    if (userData.contactInfo) {
+        document.getElementById('phoneNumber').value = userData.contactInfo.phone || '';
+        document.getElementById('contactEmail').value = userData.contactInfo.email || '';
+    }
+
+    // Load location info
+    if (userData.addressInfo) {
+        document.getElementById('streetAddress').value = userData.addressInfo.street || '';
+        document.getElementById('unit').value = userData.addressInfo.unit || '';
+        document.getElementById('city').value = userData.addressInfo.city || '';
+        document.getElementById('zipCode').value = userData.addressInfo.zipCode || '';
+    }
+
+    // Load notes
+    document.getElementById('centerNotes').value = userData.centerNotes || '';
+}
+
+async function saveProfileChanges() {
+    try {
+        const user = firebase.auth().currentUser;
+        if (!user) return;
+
+        // Collect hours data
+        const hours = {
+            monday: {
+                open: document.getElementById('monOpen').value || null,
+                close: document.getElementById('monClose').value || null
+            },
+            tuesday: {
+                open: document.getElementById('tueOpen').value || null,
+                close: document.getElementById('tueClose').value || null
+            },
+            wednesday: {
+                open: document.getElementById('wedOpen').value || null,
+                close: document.getElementById('wedClose').value || null
+            },
+            thursday: {
+                open: document.getElementById('thuOpen').value || null,
+                close: document.getElementById('thuClose').value || null
+            },
+            friday: {
+                open: document.getElementById('friOpen').value || null,
+                close: document.getElementById('friClose').value || null
+            },
+            saturday: {
+                open: document.getElementById('satOpen').value || null,
+                close: document.getElementById('satClose').value || null
+            },
+            sunday: {
+                open: document.getElementById('sunOpen').value || null,
+                close: document.getElementById('sunClose').value || null
+            }
+        };
+
+        // Collect contact and location information
+        const contactInfo = {
+            phone: document.getElementById('phoneNumber').value || null,
+            email: document.getElementById('contactEmail').value || null
+        };
+
+        const locationInfo = {
+            street: document.getElementById('streetAddress').value || null,
+            unit: document.getElementById('unit').value || null,
+            city: document.getElementById('city').value || null,
+            zipCode: document.getElementById('zipCode').value || null
+        };
+
+        const centerNotes = document.getElementById('centerNotes').value || null;
+
+        // Update in Firestore
+        const userRef = firebase.firestore().collection('users').doc(user.uid);
+        const updatedUserData = {
+            operatingHours: hours,
+            contactInfo: contactInfo,
+            addressInfo: locationInfo,
+            centerNotes: centerNotes,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        await userRef.update(updatedUserData);
+
+        // Update the center card preview with the new data
+        updateCenterCardPreview(updatedUserData);
+
+    } catch (error) {
+        console.error('Error saving profile changes:', error);
+        alert('Error saving changes. Please try again.');
+    }
+}
+
+async function updateAnalytics(centerLocation) {
+    if (!centerLocation || !centerLocation.latitude || !centerLocation.longitude) {
+        console.log('Location not yet initialized');
+        return;
+    }
+
+    const radius = parseFloat(document.getElementById('radiusFilter').value);
+    const itemCategory = document.getElementById('itemFilter').value.toLowerCase(); // Add toLowerCase()
+    
+    try {
+        // Get all neighbors within radius
+        const neighborsSnapshot = await firebase.firestore()
+            .collection('users')
+            .where('isDonationCenter', '==', false)
+            .get();
+
+        let needsCount = { high: 0, medium: 0, low: 0 };
+        let donorsCount = 0;
+        let totalItemsAvailable = 0;
+
+        // Debug logging
+        console.log('Center Location:', centerLocation);
+        console.log('Selected radius:', radius);
+        console.log('Selected category:', itemCategory);
+
+        neighborsSnapshot.forEach(doc => {
+            const neighborData = doc.data();
+            
+            // Debug logging
+            console.log('Neighbor Data:', neighborData);
+            
+            if (!neighborData.location) {
+                console.log('Neighbor has no location:', doc.id);
                 return;
             }
 
-            const radius = parseFloat(document.getElementById('radiusFilter').value);
-            const itemCategory = document.getElementById('itemFilter').value;
-            
-            try {
-                const neighborsSnapshot = await firebase.firestore()
-                    .collection('users')
-                    .where('isDonationCenter', '==', false)
-                    .get();
+            const distance = calculateDistance(
+                centerLocation.latitude,
+                centerLocation.longitude,
+                neighborData.location.latitude,
+                neighborData.location.longitude
+            );
 
-                let needsCount = { high: 0, medium: 0, low: 0 };
-                let donorsCount = 0;
-                let totalItemsAvailable = 0;
+            // Debug logging
+            console.log('Distance to neighbor:', distance);
 
-                neighborsSnapshot.forEach(doc => {
-                    const neighborData = doc.data();
-                    
-                    if (!neighborData.location) return;
-
-                    const distance = calculateDistance(
-                        centerLocation.latitude,
-                        centerLocation.longitude,
-                        neighborData.location.latitude,
-                        neighborData.location.longitude
-                    );
-
-                    if (distance <= radius || radius === 999) {
-                        // Count needs by urgency
-                        if (neighborData.needs) {
-                            neighborData.needs.forEach(need => {
-                                if (need.category === itemCategory) {
-                                    needsCount[need.urgency || 'low']++;
-                                }
-                            });
-                        }
-
-                        // Count available donations
-                        if (neighborData.canDonate) {
-                            let hasDonatable = false;
-                            neighborData.canDonate.forEach(item => {
-                                if (item.category === itemCategory) {
-                                    hasDonatable = true;
-                                    if (item.quantity > 0) {
-                                        totalItemsAvailable += item.quantity;
-                                    }
-                                }
-                            });
-                            if (hasDonatable) donorsCount++;
-                        }
-                    }
-                });
-
-                // Calculate total needs and update urgency bar
-                const totalNeeds = needsCount.high + needsCount.medium + needsCount.low;
-                const urgencyBarContainer = document.querySelector('.urgency-bar');
-                const highUrgencyEl = document.getElementById('highUrgency');
-                const mediumUrgencyEl = document.getElementById('mediumUrgency');
-                const lowUrgencyEl = document.getElementById('lowUrgency');
-
-                if (totalNeeds === 0) {
-                    urgencyBarContainer.classList.add('empty');
-                } else {
-                    urgencyBarContainer.classList.remove('empty');
-                    highUrgencyEl.style.width = `${(needsCount.high / totalNeeds * 100) || 0}%`;
-                    mediumUrgencyEl.style.width = `${(needsCount.medium / totalNeeds * 100) || 0}%`;
-                    lowUrgencyEl.style.width = `${(needsCount.low / totalNeeds * 100) || 0}%`;
-                }
-
-                // Update the total counts in the UI
-                document.getElementById('totalNeeding').textContent = totalNeeds.toString();
-                document.getElementById('totalDonors').textContent = donorsCount.toString();
-                document.getElementById('totalItems').textContent = totalItemsAvailable.toString();
-
-            } catch (error) {
-                console.error('Error updating analytics:', error);
+            if (distance <= radius || radius === 999) {
+    // Count needs by urgency
+    if (neighborData.needs) {
+        neighborData.needs.forEach(need => {
+            // Simple item name check - we can make this more sophisticated
+            const itemNameLower = need.itemName?.toLowerCase() || '';
+            // Check if item name contains the category
+            if (itemNameLower.includes(itemCategory)) {
+                needsCount[need.urgency || 'low']++;
             }
+        });
+    }
+
+    // Count available donations
+    if (neighborData.canDonate) {
+        let hasDonatable = false;
+        neighborData.canDonate.forEach(item => {
+            const itemNameLower = item.itemName?.toLowerCase() || '';
+            // Check if item name contains the category
+            if (itemNameLower.includes(itemCategory)) {
+                hasDonatable = true;
+                totalItemsAvailable += item.quantity || 1;
+            }
+        });
+        if (hasDonatable) donorsCount++;
+    }
+}
+            
+        });
+
+        // Calculate total needs and update urgency bar
+        const totalNeeds = needsCount.high + needsCount.medium + needsCount.low;
+        const urgencyBar = document.querySelector('.urgency-bar');
+
+        if (totalNeeds === 0) {
+            urgencyBar.classList.add('empty');
+            document.getElementById('highUrgency').style.width = '0%';
+            document.getElementById('mediumUrgency').style.width = '0%';
+            document.getElementById('lowUrgency').style.width = '0%';
+        } else {
+            urgencyBar.classList.remove('empty');
+            document.getElementById('highUrgency').style.width = 
+                `${(needsCount.high / totalNeeds * 100) || 0}%`;
+            document.getElementById('mediumUrgency').style.width = 
+                `${(needsCount.medium / totalNeeds * 100) || 0}%`;
+            document.getElementById('lowUrgency').style.width = 
+                `${(needsCount.low / totalNeeds * 100) || 0}%`;
         }
+
+        // Debug logging
+        console.log('Final counts:', {
+            needsCount,
+            donorsCount,
+            totalItemsAvailable
+        });
+
+        document.getElementById('totalNeeding').textContent = totalNeeds.toString();
+        document.getElementById('totalDonors').textContent = donorsCount.toString();
+        document.getElementById('totalItems').textContent = totalItemsAvailable.toString();
+
+    } catch (error) {
+        console.error('Error updating analytics:', error);
+    }
+}
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
@@ -207,64 +620,78 @@
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                const urlParams = new URLSearchParams(window.location.search);
-                const token = urlParams.get('token');
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
 
-                if (!token) {
-                    console.log('No token found');
-                    window.location.href = '/login';
-                    return;
-                }
+        if (!token) {
+            console.log('No token found');
+            window.location.href = '/login';
+            return;
+        }
 
-                firebase.auth().onAuthStateChanged(async (user) => {
-                    if (user) {
-                        try {
-                            const userDoc = await firebase.firestore()
-                                .collection('users')
-                                .doc(user.uid)
-                                .get();
-                            
-                            const userData = userDoc.data();
-                            document.getElementById('userEmail').textContent = user.email;
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (user) {
+                try {
+                    const userDoc = await firebase.firestore()
+                        .collection('users')
+                        .doc(user.uid)
+                        .get();
+                    
+                    const userData = userDoc.data();
+                    document.getElementById('userEmail').textContent = user.email;
 
-                            if (!userData.isDonationCenter) {
-                                window.location.href = '/neighbor-dashboard';
-                                return;
-                            }
-
-                            // Robust location validation
-                            if (!userData.location || 
-                                typeof userData.location.latitude !== 'number' || 
-                                typeof userData.location.longitude !== 'number') {
-                                console.error('Invalid location data');
-                                window.location.href = '/setup-location';
-                                return;
-                            }
-
-                            // Set centerLocation with explicit type checking
-                            centerLocation = {
-                                latitude: Number(userData.location.latitude),
-                                longitude: Number(userData.location.longitude)
-                            };
-
-                            // Call updateAnalytics immediately after setting location
-                            await updateAnalytics(centerLocation);
-
-                        } catch (error) {
-                            console.error('Error initializing user data:', error);
-                            window.location.href = '/login';
-                        }
-                    } else {
-                        window.location.href = '/login';
+                    if (!userData.isDonationCenter) {
+                        window.location.href = '/neighbor-dashboard';
+                        return;
                     }
-                });
 
-            } catch (error) {
-                console.error('Dashboard initialization error:', error);
+                    // Robust location validation
+                    if (!userData.location || 
+                        typeof userData.location.latitude !== 'number' || 
+                        typeof userData.location.longitude !== 'number') {
+                        console.error('Invalid location data');
+                        window.location.href = '/setup-location';
+                        return;
+                    }
+
+                    // Set centerLocation with explicit type checking
+                    centerLocation = {
+                        latitude: Number(userData.location.latitude),
+                        longitude: Number(userData.location.longitude)
+                    };
+
+                    // Update center card preview and load center information
+                    updateCenterCardPreview(userData);
+                    loadCenterInformation(userData);  // Moved inside here
+
+                    // Call updateAnalytics immediately after setting location
+                    await updateAnalytics(centerLocation);
+
+                } catch (error) {
+                    console.error('Error initializing user data:', error);
+                    window.location.href = '/login';
+                }
+            } else {
                 window.location.href = '/login';
             }
         });
+
+    } catch (error) {
+        console.error('Dashboard initialization error:', error);
+        window.location.href = '/login';
+    }
+});
+        async function goToProfile(event) {
+            event.preventDefault();
+            const user = firebase.auth().currentUser;
+            if (user) {
+                const token = await user.getIdToken();
+                const url = new URL('/donation-center-profile', window.location.origin);
+                url.searchParams.append('token', token);
+                window.location.href = url.toString();
+            }
+        }
     </script>
 </body>
 </html>

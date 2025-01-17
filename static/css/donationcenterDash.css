@@ -245,3 +245,372 @@ body {
     width: 0 !important;
     transition: none;
 }
+
+.center-preview {
+    background: white;
+    border-radius: 4px;
+    border: 1px solid #e6e6e6;
+    padding: 1rem;
+}
+
+.center-preview h3 {
+    margin-bottom: 1rem;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.center-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    border: 1px solid #e6e6e6;
+    border-radius: 4px;
+    background: white;
+}
+
+.center-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.center-info h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+    color: #2d2e2f;
+}
+
+.distance {
+    color: #6e7072;
+    font-size: 0.9rem;
+}
+
+.matches-container {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e6e6e6;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    width: 100%;
+}
+
+.matches-section {
+    padding: 1rem;
+    border-radius: 4px;
+}
+
+.matches-needs {
+    background-color: #e6f7ff;  /* Light blue background */
+}
+
+.matches-donations {
+    background-color: #f6ffed;  /* Light green background */
+}
+
+.matches-section h4 {
+    color: #2d2e2f;
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+}
+
+.matches-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.matches-section li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.match-item {
+    font-weight: 500;
+}
+
+.match-quantity {
+    color: #6e7072;
+}
+
+.no-matches {
+    color: #6e7072;
+    font-style: italic;
+}
+
+.urgency-tag {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.urgency-tag.low-urgency {
+    background-color: #e6f3e6;
+    color: #2a7e19;
+}
+
+.urgency-tag.medium-urgency {
+    background-color: #fff4e6;
+    color: #d48806;
+}
+
+.urgency-tag.high-urgency {
+    background-color: #fff1f0;
+    color: #cf1322;
+}
+
+@media (max-width: 768px) {
+    .matches-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+.how-neighbors-see {
+    text-align: center;
+    font-size: 1.1rem;
+    color: #333;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+/* Profile Layout */
+.preview-section {
+    margin-bottom: 2rem;
+}
+
+.center-info-section {
+    width: 100%;
+}
+
+.profile-settings {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Grid Layout for Settings */
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+}
+
+.settings-section {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #555;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* Hours Grid */
+.hours-grid {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.day-row {
+    display: grid;
+    grid-template-columns: 30px 1fr auto 1fr;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.day-row input[type="time"] {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* Save Button */
+.settings-actions {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.save-btn {
+    padding: 0.75rem 2rem;
+    background: #333;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.save-btn:hover {
+    background: #444;
+}
+
+.profile-settings {
+    width: 100%;
+    max-width: none;
+    margin-top: 2rem;
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.settings-section {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+
+.settings-section textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+    min-height: 120px;
+    font-family: inherit;
+}
+
+/* Make sure the bottom sections align with top sections */
+.settings-section:nth-child(3),
+.settings-section:nth-child(4) {
+    margin-top: 0;
+}
+
+@media (max-width: 1024px) {
+    .settings-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}
+
+#userEmail {
+    color: inherit;       /* Makes the color match the surrounding text */
+}
+
+.center-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: .75rem;
+}
+
+.center-main-info {
+    flex: 1;
+}
+
+.center-main-info h3 {
+    margin-bottom: 0.5rem;
+}
+
+.contact-detail {
+    color: #666;
+    margin: 0.25rem 0;
+}
+
+.center-location {
+    text-align: right;
+}
+
+.center-location p {
+    color: #666;
+    margin: 0.25rem 0;
+}
+
+.hours-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.5rem;
+}
+
+.day-hours {
+    color: #666;
+}
+
+.additional-info {
+    margin-bottom: .75rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.additional-info h4 {
+    margin-bottom: 0.5rem;
+}
+
+.additional-info p {
+    color: #666;
+    white-space: pre-wrap;
+}
+
+.center-main-info .contact-detail {
+    color: #666;
+    margin: 0.5rem 0;  /* Increased vertical spacing */
+    line-height: 1.4;  /* Improved readability */
+}
+
+.center-hours {
+    text-align: right;
+    position: relative;
+    padding-top: 3px;
+    border-radius: 4px;
+    color: #666;
+    text-decoration: underline;
+}
+
+.center-hours .hours-popup {
+    position: absolute;
+    background-color: #fff;
+    border: 1px solid #e6e6e6;
+    border-radius: 4px;
+    padding: 1rem;
+    z-index: 100;
+    width: 260px;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 100%;
+    margin-top: 0.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+    text-align: left;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.center-hours:hover .hours-popup {
+    opacity: 1;
+    visibility: visible;
+}
+
+.center-hours .hours-popup .day-hours {
+    margin-bottom: 0.5rem;
+    color: #666;
+}

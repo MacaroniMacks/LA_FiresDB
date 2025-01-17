@@ -236,6 +236,14 @@ def neighbor_profile():
 def donation_center_dashboard():
     return render_template('donation-center-dashboard.html')
 
+@app.route('/donation-center-profile')
+@login_required
+def donation_center_profile():
+    # Check if it's an API request or browser request
+    if request.headers.get('Accept') == 'application/json':
+        return jsonify({'status': 'success'})
+    return render_template('donation-center-profile.html')
+
 @app.route('/logout')
 def logout():
     # Clear any session data if you're using sessions

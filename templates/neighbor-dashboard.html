@@ -92,34 +92,36 @@ async function updateDonationCenters(userData) {
                     <div class="center-info">
                         <h3>${centerData.centerName || 'Unnamed Center'}</h3>
                         <p class="distance">${distance.toFixed(1)} miles away</p>
-                        ${centerData.needs && centerData.needs.length > 0 ? `
-                        ` : '<p>No current needs listed</p>'}
                     </div>
                     <div class="matches-container">
-                        <div class="matches-section matches-needs">
-                            <h4>Items They Have That You Need</h4>
-                            <ul>
-                                ${findMatches(userData?.needs || [], centerData?.inventory || []).map(match => `
+                    <div class="matches-section matches-needs">
+                        <h4>Center's Inventory</h4>
+                        <ul>
+                            ${centerData?.inventory?.length > 0 ? 
+                                centerData.inventory.map(item => `
                                     <li>
-                                        <span class="match-item">${match.itemName}</span>
-                                        ${match.quantity ? `<span class="match-quantity">(${match.quantity} available)</span>` : ''}
+                                        <span class="match-item">${item.itemName}</span>
+                                        ${item.quantity ? `<span class="match-quantity">(${item.quantity} available)</span>` : ''}
                                     </li>
-                                `).join('') || '<li class="no-matches">No matching items</li>'}
-                            </ul>
-                        </div>
-                        <div class="matches-section matches-donations">
-                            <h4>Items You Can Donate That They Need</h4>
-                            <ul>
-                                ${findMatches(userData?.canDonate || [], centerData?.needs || []).map(match => `
-                                    <li>
-                                        <span class="match-item">${match.itemName}</span>
-                                        ${match.quantity ? `<span class="match-quantity">(${match.quantity} needed)</span>` : ''}
-                                        ${match.urgency ? `<span class="urgency-tag ${match.urgency}-urgency">${match.urgency}</span>` : ''}
-                                    </li>
-                                `).join('') || '<li class="no-matches">No matching items</li>'}
-                            </ul>
-                        </div>
+                                `).join('') : '<li class="no-matches">Center currently hasn\'t set up inventory</li>'
+                            }
+                        </ul>
                     </div>
+                    <div class="matches-section matches-donations">
+                        <h4>Center's Needs</h4>
+                        <ul>
+                            ${centerData?.needs?.length > 0 ? 
+                                centerData.needs.map(need => `
+                                    <li>
+                                        <span class="match-item">${need.itemName}</span>
+                                        ${need.quantity ? `<span class="match-quantity">(${need.quantity} needed)</span>` : ''}
+                                        ${need.urgency ? `<span class="urgency-tag ${need.urgency}-urgency">${need.urgency}</span>` : ''}
+                                    </li>
+                                `).join('') : '<li class="no-matches">Center currently hasn\'t set up needs</li>'
+                            }
+                        </ul>
+                    </div>
+                </div>
                 `;
                 centersList.appendChild(centerCard);
             }
