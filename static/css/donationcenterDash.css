@@ -395,6 +395,7 @@ body {
 
 /* Grid Layout for Settings */
 .settings-grid {
+    margin-top: 15px;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
@@ -469,7 +470,7 @@ body {
 .profile-settings {
     width: 100%;
     max-width: none;
-    margin-top: 2rem;
+    margin-top: 1.5rem;
     background: white;
     padding: 2rem;
     border-radius: 8px;

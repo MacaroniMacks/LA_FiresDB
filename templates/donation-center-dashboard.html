@@ -95,7 +95,7 @@
                             <p id="previewAddress"></p>
                             <p class="distance" id="previewDistance">0 miles away</p>
                             <div class="center-hours" id="hoursOfOperation">
-                                <h4>Hours of Operation</h4>
+                                <h4 id="hoursStatus"></h4>
                                 <div class="hours-popup">
                                     <div id="centerHours"></div>
                                 </div>
@@ -136,7 +136,7 @@
                     <div class="settings-grid">
                         <!-- Top Row -->
                         <div class="settings-section">
-                            <h3>Hours of Operation</h3>
+                            <h3 id="hoursHeader"></h3>
                             <div class="hours-grid">
                                 <div class="day-row">
                                     <label>M</label>
@@ -267,6 +267,24 @@
             return degrees * (Math.PI/180);
         }
 
+        function getCurrentTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+
+        function convertTo12HourFormat(time) {
+            if (!time) return '';
+            let [hour, minute] = time.split(':');
+            hour = parseInt(hour);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            hour = hour % 12;
+            hour = hour ? hour : 12; // the hour '0' should be '12'
+            minute = minute.padStart(2, '0');
+            return `${hour}:${minute} ${ampm}`;
+        }
+
         function updateCenterCardPreview(userData) {
     if (!userData) {
         console.error('No user data provided to updateCenterCardPreview');
@@ -282,8 +300,9 @@
     // Update address
     const addressEl = document.getElementById('previewAddress');
     if (addressEl && userData.addressInfo) {
-        const address = [
+        let address = [
             userData.addressInfo.street,
+            userData.addressInfo.unit ? `Unit ${userData.addressInfo.unit}` : null,
             userData.addressInfo.city,
             userData.addressInfo.zipCode
         ].filter(Boolean).join(', ');
@@ -305,37 +324,62 @@
     }
 
     // Update hours
-    const hoursContainerEl = document.getElementById('centerHours');
+    const hoursHeaderEl = document.getElementById('hoursHeader');
+    const hoursContainerEl = document.getElementById('hoursOfOperation');
+    const hoursPopupEl = document.querySelector('#hoursOfOperation .hours-popup');
 
-// Function to convert 24-hour time to 12-hour AM/PM format
-function convertTo12HourFormat(time) {
-    let [hour, minute] = time.split(':');
-    hour = parseInt(hour);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    hour = hour % 12;
-    hour = hour ? hour : 12; // the hour '0' should be '12'
-    minute = minute.padStart(2, '0');
-    return `${hour}:${minute} ${ampm}`;
-}
+    // Function to convert 24-hour time to 12-hour AM/PM format
+    function convertTo12HourFormat(time) {
+        let [hour, minute] = time.split(':');
+        hour = parseInt(hour);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        hour = hour % 12;
+        hour = hour ? hour : 12; // the hour '0' should be '12'
+        minute = minute.padStart(2, '0');
+        return `${hour}:${minute} ${ampm}`;
+    }
 
-if (hoursContainerEl && userData.operatingHours) {
-    let hoursContent = '';
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    if (hoursContainerEl && userData.operatingHours) {
+        let hoursStatus = 'Closed';
+        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        const currentDay = days[new Date().getDay()];
+        const todayHours = userData.operatingHours[currentDay];
 
-    days.forEach(day => {
-        const dayHours = userData.operatingHours[day.toLowerCase()];
-        if (dayHours && dayHours.open && dayHours.close) {
-            const openTime = convertTo12HourFormat(dayHours.open);
-            const closeTime = convertTo12HourFormat(dayHours.close);
-            hoursContent += `<div class="day-hours">${day}: ${openTime} - ${closeTime}</div>`;
-        } else {
-            hoursContent += `<div class="day-hours">${day}: Closed</div>`;
+        if (todayHours && todayHours.open && todayHours.close) {
+            const [openHour, openMinute] = todayHours.open.split(':').map(Number);
+            const [closeHour, closeMinute] = todayHours.close.split(':').map(Number);
+            const openTime = new Date();
+            openTime.setHours(openHour, openMinute, 0);
+            const closeTime = new Date();
+            closeTime.setHours(closeHour, closeMinute, 0);
+
+            // Handle cases where closing time is past midnight
+            if (closeTime < openTime) {
+                closeTime.setDate(closeTime.getDate() + 1);
+            }
+
+            const currentDate = new Date();
+            if (currentDate >= openTime && currentDate <= closeTime) {
+                hoursStatus = `Open until ${convertTo12HourFormat(todayHours.close)}`;
+            } else {
+                hoursStatus = `Closed until ${convertTo12HourFormat(todayHours.open)}`;
+            }
         }
-    });
 
-    hoursContainerEl.innerHTML = hoursContent;
-}
+        hoursHeaderEl.textContent = hoursStatus;
 
+        // Update the hours popup
+        let hoursPopupContent = '';
+        days.forEach(day => {
+            const dayHours = userData.operatingHours[day];
+            if (dayHours && dayHours.open && dayHours.close) {
+                hoursPopupContent += `<div class="day-hours">${day.charAt(0).toUpperCase() + day.slice(1)}: ${convertTo12HourFormat(dayHours.open)} - ${convertTo12HourFormat(dayHours.close)}</div>`;
+            } else {
+                hoursPopupContent += `<div class="day-hours">${day.charAt(0).toUpperCase() + day.slice(1)}: Closed</div>`;
+            }
+        });
+        hoursPopupEl.innerHTML = hoursPopupContent;
+    }
 
     // Update notes
     const notesEl = document.getElementById('previewNotes');
@@ -376,7 +420,41 @@ if (hoursContainerEl && userData.operatingHours) {
 }
 
 function loadCenterInformation(userData) {
-    if (!userData) return;
+            if (!userData) return;
+
+            // Update hours header with current status
+            const hoursHeader = document.getElementById('hoursHeader');
+            if (hoursHeader && userData.operatingHours) {
+                const currentTime = getCurrentTime();
+                const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+                const currentDay = days[new Date().getDay()];
+                const todayHours = userData.operatingHours[currentDay];
+
+                let hoursStatus = '';
+                if (!todayHours || !todayHours.open || !todayHours.close) {
+                    hoursStatus = 'Closed';
+                } else {
+                    const [openHour, openMinute] = todayHours.open.split(':').map(Number);
+                    const [closeHour, closeMinute] = todayHours.close.split(':').map(Number);
+                    const openTime = new Date();
+                    openTime.setHours(openHour, openMinute, 0);
+                    const closeTime = new Date();
+                    closeTime.setHours(closeHour, closeMinute, 0);
+
+                    // Handle cases where closing time is past midnight
+                    if (closeTime < openTime) {
+                        closeTime.setDate(closeTime.getDate() + 1);
+                    }
+
+                    const currentDate = new Date();
+                    if (currentDate >= openTime && currentDate <= closeTime) {
+                        hoursStatus = `Open until ${convertTo12HourFormat(todayHours.close)}`;
+                    } else {
+                        hoursStatus = `Closed until ${convertTo12HourFormat(todayHours.open)}`;
+                    }
+                }
+                hoursHeader.textContent = hoursStatus;
+            }
 
     // Load hours
     if (userData.operatingHours) {
@@ -501,122 +579,249 @@ async function saveProfileChanges() {
     }
 }
 
-async function updateAnalytics(centerLocation) {
-    if (!centerLocation || !centerLocation.latitude || !centerLocation.longitude) {
-        console.log('Location not yet initialized');
+function updateCenterCardPreview(userData) {
+    if (!userData) {
+        console.error('No user data provided to updateCenterCardPreview');
         return;
     }
 
-    const radius = parseFloat(document.getElementById('radiusFilter').value);
-    const itemCategory = document.getElementById('itemFilter').value.toLowerCase(); // Add toLowerCase()
-    
-    try {
-        // Get all neighbors within radius
-        const neighborsSnapshot = await firebase.firestore()
-            .collection('users')
-            .where('isDonationCenter', '==', false)
-            .get();
-
-        let needsCount = { high: 0, medium: 0, low: 0 };
-        let donorsCount = 0;
-        let totalItemsAvailable = 0;
-
-        // Debug logging
-        console.log('Center Location:', centerLocation);
-        console.log('Selected radius:', radius);
-        console.log('Selected category:', itemCategory);
-
-        neighborsSnapshot.forEach(doc => {
-            const neighborData = doc.data();
-            
-            // Debug logging
-            console.log('Neighbor Data:', neighborData);
-            
-            if (!neighborData.location) {
-                console.log('Neighbor has no location:', doc.id);
-                return;
-            }
-
-            const distance = calculateDistance(
-                centerLocation.latitude,
-                centerLocation.longitude,
-                neighborData.location.latitude,
-                neighborData.location.longitude
-            );
-
-            // Debug logging
-            console.log('Distance to neighbor:', distance);
-
-            if (distance <= radius || radius === 999) {
-    // Count needs by urgency
-    if (neighborData.needs) {
-        neighborData.needs.forEach(need => {
-            // Simple item name check - we can make this more sophisticated
-            const itemNameLower = need.itemName?.toLowerCase() || '';
-            // Check if item name contains the category
-            if (itemNameLower.includes(itemCategory)) {
-                needsCount[need.urgency || 'low']++;
-            }
-        });
+    // Update center name
+    const centerNameEl = document.getElementById('previewCenterName');
+    if (centerNameEl) {
+        centerNameEl.textContent = userData.centerName || 'Unnamed Center';
     }
 
-    // Count available donations
-    if (neighborData.canDonate) {
-        let hasDonatable = false;
-        neighborData.canDonate.forEach(item => {
-            const itemNameLower = item.itemName?.toLowerCase() || '';
-            // Check if item name contains the category
-            if (itemNameLower.includes(itemCategory)) {
-                hasDonatable = true;
-                totalItemsAvailable += item.quantity || 1;
-            }
-        });
-        if (hasDonatable) donorsCount++;
+    // Update address
+    const addressEl = document.getElementById('previewAddress');
+    if (addressEl && userData.addressInfo) {
+        let address = [
+            userData.addressInfo.street,
+            userData.addressInfo.unit ? `Unit ${userData.addressInfo.unit}` : null,
+            userData.addressInfo.city,
+            userData.addressInfo.zipCode
+        ].filter(Boolean).join(', ');
+        addressEl.textContent = address || 'Address not provided';
     }
-}
-            
-        });
 
-        // Calculate total needs and update urgency bar
-        const totalNeeds = needsCount.high + needsCount.medium + needsCount.low;
-        const urgencyBar = document.querySelector('.urgency-bar');
+    // Update distance
+    const distanceEl = document.getElementById('previewDistance');
+    if (distanceEl) {
+        distanceEl.textContent = '0 miles away';
+    }
 
-        if (totalNeeds === 0) {
-            urgencyBar.classList.add('empty');
-            document.getElementById('highUrgency').style.width = '0%';
-            document.getElementById('mediumUrgency').style.width = '0%';
-            document.getElementById('lowUrgency').style.width = '0%';
-        } else {
-            urgencyBar.classList.remove('empty');
-            document.getElementById('highUrgency').style.width = 
-                `${(needsCount.high / totalNeeds * 100) || 0}%`;
-            document.getElementById('mediumUrgency').style.width = 
-                `${(needsCount.medium / totalNeeds * 100) || 0}%`;
-            document.getElementById('lowUrgency').style.width = 
-                `${(needsCount.low / totalNeeds * 100) || 0}%`;
+    // Update phone and email
+    const phoneEl = document.getElementById('previewPhone');
+    const emailEl = document.getElementById('previewEmail');
+    if (phoneEl && emailEl && userData.contactInfo) {
+        phoneEl.textContent = userData.contactInfo.phone || 'No phone number provided';
+        emailEl.textContent = userData.contactInfo.email || 'No email provided';
+    }
+
+    // Update hours
+    const hoursHeaderEl = document.getElementById('hoursHeader');
+    const hoursStatusEl = document.getElementById('hoursStatus');
+    const hoursContainerEl = document.getElementById('hoursOfOperation');
+    const hoursPopupEl = document.querySelector('#hoursOfOperation .hours-popup');
+
+    // Function to convert 24-hour time to 12-hour AM/PM format
+    function convertTo12HourFormat(time) {
+        if (!time) return '';
+        let [hour, minute] = time.split(':');
+        hour = parseInt(hour);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        hour = hour % 12;
+        hour = hour ? hour : 12; // the hour '0' should be '12'
+        minute = minute.padStart(2, '0');
+        return `${hour}:${minute} ${ampm}`;
+    }
+
+    if (hoursContainerEl && userData.operatingHours) {
+        let hoursStatus = 'Closed';
+        const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const currentDay = days[new Date().getDay()];
+        const todayHours = userData.operatingHours[currentDay];
+
+        if (todayHours && todayHours.open && todayHours.close) {
+            const [openHour, openMinute] = todayHours.open.split(':').map(Number);
+            const [closeHour, closeMinute] = todayHours.close.split(':').map(Number);
+            const openTime = new Date();
+            openTime.setHours(openHour, openMinute, 0);
+            const closeTime = new Date();
+            closeTime.setHours(closeHour, closeMinute, 0);
+
+            // Handle cases where closing time is past midnight
+            if (closeTime < openTime) {
+                closeTime.setDate(closeTime.getDate() + 1);
+            }
+
+            const currentDate = new Date();
+            if (currentDate >= openTime && currentDate <= closeTime) {
+                hoursStatus = `Open until ${convertTo12HourFormat(todayHours.close)}`;
+            } else {
+                hoursStatus = `Closed until ${convertTo12HourFormat(todayHours.open)}`;
+            }
         }
 
-        // Debug logging
-        console.log('Final counts:', {
-            needsCount,
-            donorsCount,
-            totalItemsAvailable
+        // Update both hours status elements
+        if (hoursHeaderEl) {
+            hoursHeaderEl.textContent = hoursStatus;
+        }
+        if (hoursStatusEl) {
+            hoursStatusEl.textContent = hoursStatus;
+        }
+
+        // Update the hours popup
+        let hoursPopupContent = '';
+        days.forEach(day => {
+            const dayHours = userData.operatingHours[day];
+            if (dayHours && dayHours.open && dayHours.close) {
+                hoursPopupContent += `<div class="day-hours">${day.charAt(0).toUpperCase() + day.slice(1)}: ${convertTo12HourFormat(dayHours.open)} - ${convertTo12HourFormat(dayHours.close)}</div>`;
+            } else {
+                hoursPopupContent += `<div class="day-hours">${day.charAt(0).toUpperCase() + day.slice(1)}: Closed</div>`;
+            }
         });
+        if (hoursPopupEl) {
+            hoursPopupEl.innerHTML = hoursPopupContent;
+        }
+    }
 
-        document.getElementById('totalNeeding').textContent = totalNeeds.toString();
-        document.getElementById('totalDonors').textContent = donorsCount.toString();
-        document.getElementById('totalItems').textContent = totalItemsAvailable.toString();
+    // Update notes
+    const notesEl = document.getElementById('previewNotes');
+    if (notesEl) {
+        notesEl.textContent = userData.centerNotes || 'No additional information provided';
+    }
 
-    } catch (error) {
-        console.error('Error updating analytics:', error);
+    // Update inventory
+    const inventoryListEl = document.getElementById('previewInventory');
+    if (inventoryListEl) {
+        if (Array.isArray(userData.inventory) && userData.inventory.length > 0) {
+            inventoryListEl.innerHTML = userData.inventory.map(item => `
+                <li>
+                    <span class="match-item">${item.itemName || 'Unnamed Item'}</span>
+                    ${item.quantity ? `<span class="match-quantity">(${item.quantity} available)</span>` : ''}
+                </li>
+            `).join('');
+        } else {
+            inventoryListEl.innerHTML = '<li class="no-matches">Center currently hasn\'t set up inventory</li>';
+        }
+    }
+
+    // Update needs
+    const needsListEl = document.getElementById('previewNeeds');
+    if (needsListEl) {
+        if (Array.isArray(userData.needs) && userData.needs.length > 0) {
+            needsListEl.innerHTML = userData.needs.map(need => `
+                <li>
+                    <span class="match-item">${need.itemName || 'Unnamed Item'}</span>
+                    ${need.quantity ? `<span class="match-quantity">(${need.quantity} needed)</span>` : ''}
+                    ${need.urgency ? `<span class="urgency-tag ${need.urgency}-urgency">${need.urgency}</span>` : ''}
+                </li>
+            `).join('');
+        } else {
+            needsListEl.innerHTML = '<li class="no-matches">Center currently hasn\'t set up needs</li>';
+        }
     }
 }
 
-        function switchTab(tabName) {
+function switchTab(tabName) {
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
             document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
             document.getElementById(tabName).style.display = 'block';
+        }
+
+        async function updateAnalytics(centerLocation) {
+            if (!centerLocation || !centerLocation.latitude || !centerLocation.longitude) {
+                console.log('Location not yet initialized');
+                return;
+            }
+
+            const radius = parseFloat(document.getElementById('radiusFilter').value);
+            const itemCategory = document.getElementById('itemFilter').value.toLowerCase();
+            
+            try {
+                // Get all neighbors within radius
+                const neighborsSnapshot = await firebase.firestore()
+                    .collection('users')
+                    .where('isDonationCenter', '==', false)
+                    .get();
+
+                let needsCount = { high: 0, medium: 0, low: 0 };
+                let donorsCount = 0;
+                let totalItemsAvailable = 0;
+
+                // Debug logging
+                console.log('Center Location:', centerLocation);
+                console.log('Selected radius:', radius);
+                console.log('Selected category:', itemCategory);
+
+                neighborsSnapshot.forEach(doc => {
+                    const neighborData = doc.data();
+                    
+                    if (!neighborData.location) {
+                        console.log('Neighbor has no location:', doc.id);
+                        return;
+                    }
+
+                    const distance = calculateDistance(
+                        centerLocation.latitude,
+                        centerLocation.longitude,
+                        neighborData.location.latitude,
+                        neighborData.location.longitude
+                    );
+
+                    if (distance <= radius || radius === 999) {
+                        // Count needs by urgency
+                        if (neighborData.needs) {
+                            neighborData.needs.forEach(need => {
+                                const itemNameLower = need.itemName?.toLowerCase() || '';
+                                if (itemNameLower.includes(itemCategory)) {
+                                    needsCount[need.urgency || 'low']++;
+                                }
+                            });
+                        }
+
+                        // Count available donations
+                        if (neighborData.canDonate) {
+                            let hasDonatable = false;
+                            neighborData.canDonate.forEach(item => {
+                                const itemNameLower = item.itemName?.toLowerCase() || '';
+                                if (itemNameLower.includes(itemCategory)) {
+                                    hasDonatable = true;
+                                    totalItemsAvailable += item.quantity || 1;
+                                }
+                            });
+                            if (hasDonatable) donorsCount++;
+                        }
+                    }
+                });
+
+                // Calculate total needs and update urgency bar
+                const totalNeeds = needsCount.high + needsCount.medium + needsCount.low;
+                const urgencyBar = document.querySelector('.urgency-bar');
+
+                if (totalNeeds === 0) {
+                    urgencyBar.classList.add('empty');
+                    document.getElementById('highUrgency').style.width = '0%';
+                    document.getElementById('mediumUrgency').style.width = '0%';
+                    document.getElementById('lowUrgency').style.width = '0%';
+                } else {
+                    urgencyBar.classList.remove('empty');
+                    document.getElementById('highUrgency').style.width = 
+                        `${(needsCount.high / totalNeeds * 100) || 0}%`;
+                    document.getElementById('mediumUrgency').style.width = 
+                        `${(needsCount.medium / totalNeeds * 100) || 0}%`;
+                    document.getElementById('lowUrgency').style.width = 
+                        `${(needsCount.low / totalNeeds * 100) || 0}%`;
+                }
+
+                document.getElementById('totalNeeding').textContent = totalNeeds.toString();
+                document.getElementById('totalDonors').textContent = donorsCount.toString();
+                document.getElementById('totalItems').textContent = totalItemsAvailable.toString();
+
+            } catch (error) {
+                console.error('Error updating analytics:', error);
+            }
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
