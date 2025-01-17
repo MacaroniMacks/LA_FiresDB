@@ -553,3 +553,158 @@ input[type="number"]::placeholder {
     align-items: flex-start;
 }
 
+/* Add these styles for the center card header layout */
+.center-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: .75rem;
+}
+
+.center-main-info {
+    flex: 1;
+}
+
+.center-main-info h3 {
+    margin-bottom: 0.5rem;
+}
+
+.contact-detail {
+    color: #666;
+    margin: 0.25rem 0;
+}
+
+.center-location {
+    text-align: right;
+}
+
+.center-location p {
+    color: #666;
+    margin: 0.25rem 0;
+}
+
+/* Add these styles for hours display */
+.center-hours {
+    text-align: right;
+    position: relative;
+    padding-top: 3px;
+    border-radius: 4px;
+    color: #666;
+    text-decoration: underline;
+}
+
+.center-hours .hours-popup {
+    position: absolute;
+    background-color: #fff;
+    border: 1px solid #e6e6e6;
+    border-radius: 4px;
+    padding: 1rem;
+    z-index: 100;
+    width: 260px;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 100%;
+    margin-top: 0.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+    text-align: left;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.center-hours:hover .hours-popup {
+    opacity: 1;
+    visibility: visible;
+}
+
+.center-hours .hours-popup .day-hours {
+    margin-bottom: 0.5rem;
+    color: #666;
+}
+
+/* Add these styles for additional info section */
+.additional-info {
+    margin-bottom: .75rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.additional-info h4 {
+    margin-bottom: 0.5rem;
+}
+
+.additional-info p {
+    color: #666;
+    white-space: pre-wrap;
+}
+
+/* Update existing urgency-tag styles */
+.urgency-tag {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.urgency-tag.low-urgency {
+    background-color: #e6f3e6;
+    color: #2a7e19;
+}
+
+.urgency-tag.medium-urgency {
+    background-color: #fff4e6;
+    color: #d48806;
+}
+
+.urgency-tag.high-urgency {
+    background-color: #fff1f0;
+    color: #cf1322;
+}
+
+.center-hours {
+    text-align: right;
+    position: relative;
+    margin-top: 0.5rem;
+}
+
+.center-hours h4 {
+    color: #666;
+    font-size: 0.9rem;
+    margin: 0;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.center-hours .hours-popup {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    border: 1px solid #e6e6e6;
+    border-radius: 4px;
+    padding: 1rem;
+    z-index: 100;
+    width: 260px;
+    right: 0;
+    top: 100%;
+    margin-top: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.center-hours:hover .hours-popup {
+    display: block;
+}
+
+.hours-popup .day-hours {
+    padding: 0.25rem 0;
+    text-align: center;
+    color: #666;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.center-hours .hours-content {
+    background: white;
+    border-radius: 4px;
+}

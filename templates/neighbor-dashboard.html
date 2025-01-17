@@ -61,7 +61,56 @@ function toRad(degrees) {
     return degrees * (Math.PI/180);
 }
 
+function convertTo12HourFormat(time) {
+    if (!time) return '';
+    let [hour, minute] = time.split(':');
+    hour = parseInt(hour);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12;
+    hour = hour ? hour : 12; // the hour '0' should be '12'
+    minute = minute.padStart(2, '0');
+    return `${hour}:${minute} ${ampm}`;
+}
+
+function generateHoursHTML(hours, centerId) {
+    if (!hours) return '';
+    
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const currentDay = days[new Date().getDay()];
+    const todayHours = hours[currentDay];
+    let statusText = 'Closed';
+    
+    if (todayHours?.open && todayHours?.close) {
+        statusText = `Open ${convertTo12HourFormat(todayHours.open)} - ${convertTo12HourFormat(todayHours.close)}`;
+    }
+
+    const popupContent = days.map(day => {
+        const dayHours = hours[day];
+        if (dayHours?.open && dayHours?.close) {
+            return `<div class="day-hours">
+                ${day.charAt(0).toUpperCase() + day.slice(1)}: 
+                ${convertTo12HourFormat(dayHours.open)} - ${convertTo12HourFormat(dayHours.close)}
+            </div>`;
+        }
+        return `<div class="day-hours">${day.charAt(0).toUpperCase() + day.slice(1)}: Closed</div>`;
+    }).join('');
+
+    return `
+        <div class="center-hours">
+            <h4>${statusText}</h4>
+            <div class="hours-popup">
+                <div class="hours-content">
+                    ${popupContent}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 async function updateDonationCenters(userData) {
+
+    
+    console.log('Starting updateDonationCenters');
     const radius = parseFloat(document.getElementById('radiusFilter').value);
     
     try {
@@ -76,6 +125,9 @@ async function updateDonationCenters(userData) {
         centersSnapshot.forEach(doc => {
             const centerData = doc.data();
             
+            console.log('Full center data:', centerData);
+            console.log('Operating Hours:', centerData.operatingHours);
+            
             if (!centerData.location) return;
 
             const distance = calculateDistance(
@@ -88,41 +140,67 @@ async function updateDonationCenters(userData) {
             if (distance <= radius || radius === 999) {
                 const centerCard = document.createElement('div');
                 centerCard.className = 'center-card';
+                
                 centerCard.innerHTML = `
-                    <div class="center-info">
-                        <h3>${centerData.centerName || 'Unnamed Center'}</h3>
-                        <p class="distance">${distance.toFixed(1)} miles away</p>
+                    <div class="center-header">
+                        <div class="center-main-info">
+                            <h3>${centerData.centerName || 'Unnamed Center'}</h3>
+                            ${centerData.contactInfo?.phone ? 
+                                `<p class="contact-detail">${centerData.contactInfo.phone}</p>` : ''}
+                            ${centerData.contactInfo?.email ? 
+                                `<p class="contact-detail">${centerData.contactInfo.email}</p>` : ''}
+                        </div>
+                        <div class="center-location">
+                            ${centerData.addressInfo ? `
+                                <p>${[
+                                    centerData.addressInfo.street,
+                                    centerData.addressInfo.unit ? `Unit ${centerData.addressInfo.unit}` : null,
+                                    centerData.addressInfo.city,
+                                    centerData.addressInfo.zipCode
+                                ].filter(Boolean).join(', ')}</p>` : ''}
+                            <p class="distance">${distance.toFixed(1)} miles away</p>
+                            ${generateHoursHTML(centerData.operatingHours, doc.id)}
+                        </div>
                     </div>
+
+                    ${centerData.centerNotes ? `
+                        <div class="additional-info">
+                            <h4>Additional Information</h4>
+                            <p>${centerData.centerNotes}</p>
+                        </div>
+                    ` : ''}
+
                     <div class="matches-container">
-                    <div class="matches-section matches-needs">
-                        <h4>Center's Inventory</h4>
-                        <ul>
-                            ${centerData?.inventory?.length > 0 ? 
-                                centerData.inventory.map(item => `
-                                    <li>
-                                        <span class="match-item">${item.itemName}</span>
-                                        ${item.quantity ? `<span class="match-quantity">(${item.quantity} available)</span>` : ''}
-                                    </li>
-                                `).join('') : '<li class="no-matches">Center currently hasn\'t set up inventory</li>'
-                            }
-                        </ul>
+                        <div class="matches-section matches-needs">
+                            <h4>Center's Inventory</h4>
+                            <ul>
+                                ${centerData?.inventory?.length > 0 ? 
+                                    centerData.inventory.map(item => `
+                                        <li>
+                                            <span class="match-item">${item.itemName || 'Unnamed Item'}</span>
+                                            ${item.quantity ? `<span class="match-quantity">(${item.quantity} available)</span>` : ''}
+                                        </li>
+                                    `).join('') : '<li class="no-matches">Center currently hasn\'t set up inventory</li>'
+                                }
+                            </ul>
+                        </div>
+                        <div class="matches-section matches-donations">
+                            <h4>Center's Needs</h4>
+                            <ul>
+                                ${centerData?.needs?.length > 0 ? 
+                                    centerData.needs.map(need => `
+                                        <li>
+                                            <span class="match-item">${need.itemName}</span>
+                                            ${need.quantity ? `<span class="match-quantity">(${need.quantity} needed)</span>` : ''}
+                                            ${need.urgency ? `<span class="urgency-tag ${need.urgency}-urgency">${need.urgency} urgency</span>` : ''}
+                                        </li>
+                                    `).join('') : '<li class="no-matches">Center currently hasn\'t set up needs</li>'
+                                }
+                            </ul>
+                        </div>
                     </div>
-                    <div class="matches-section matches-donations">
-                        <h4>Center's Needs</h4>
-                        <ul>
-                            ${centerData?.needs?.length > 0 ? 
-                                centerData.needs.map(need => `
-                                    <li>
-                                        <span class="match-item">${need.itemName}</span>
-                                        ${need.quantity ? `<span class="match-quantity">(${need.quantity} needed)</span>` : ''}
-                                        ${need.urgency ? `<span class="urgency-tag ${need.urgency}-urgency">${need.urgency}</span>` : ''}
-                                    </li>
-                                `).join('') : '<li class="no-matches">Center currently hasn\'t set up needs</li>'
-                            }
-                        </ul>
-                    </div>
-                </div>
                 `;
+                
                 centersList.appendChild(centerCard);
             }
         });
@@ -137,6 +215,411 @@ async function updateDonationCenters(userData) {
 
     } catch (error) {
         console.error('Error fetching donation centers:', error);
+    }
+}
+
+async function updateDonationCenters(userData) {
+    console.log('Starting updateDonationCenters');
+    const radius = parseFloat(document.getElementById('radiusFilter').value);
+    
+    try {
+        const centersSnapshot = await firebase.firestore()
+            .collection('users')
+            .where('isDonationCenter', '==', true)
+            .get();
+
+        const centersList = document.getElementById('donationCentersList');
+        centersList.innerHTML = '';
+
+        let centersFoundWithinRadius = false;
+
+        // Prepare hours update tasks
+        const hourUpdateTasks = [];
+
+        centersSnapshot.forEach(doc => {
+            const centerData = doc.data();
+            
+            // Validate location data
+            if (!centerData.location || 
+                typeof centerData.location.latitude !== 'number' || 
+                typeof centerData.location.longitude !== 'number') {
+                console.warn(`Skipping center ${doc.id} due to invalid location data:`, centerData.location);
+                return;
+            }
+
+            // Calculate distance
+            const distance = calculateDistance(
+                userLocation.latitude,
+                userLocation.longitude,
+                centerData.location.latitude,
+                centerData.location.longitude
+            );
+
+            // Check if center is within radius
+            if (distance <= radius || radius === 999) {
+                centersFoundWithinRadius = true;
+                const hoursId = `hoursOf_${doc.id}`; 
+                const centerCard = document.createElement('div');
+                centerCard.className = 'center-card';
+                centerCard.setAttribute('data-center-id', doc.id);
+                centerCard.innerHTML = `
+                    <div class="center-header">
+                        <div class="center-main-info">
+                            <h3>${centerData.centerName || 'Unnamed Center'}</h3>
+                            ${centerData.contactInfo?.phone ? 
+                                `<p class="contact-detail">${centerData.contactInfo.phone}</p>` : ''}
+                            ${centerData.contactInfo?.email ? 
+                                `<p class="contact-detail">${centerData.contactInfo.email}</p>` : ''}
+                        </div>
+                        <div class="center-location">
+                            ${centerData.addressInfo ? `
+                                <p>${[
+                                    centerData.addressInfo.street,
+                                    centerData.addressInfo.unit ? `Unit ${centerData.addressInfo.unit}` : null,
+                                    centerData.addressInfo.city,
+                                    centerData.addressInfo.zipCode
+                                ].filter(Boolean).join(', ')}</p>` : ''}
+                            <p class="distance">${distance.toFixed(1)} miles away</p>
+                            <div class="center-hours" id="${hoursId}">
+                                <h4 id="${hoursId}-status">Hours Loading...</h4>
+                                <div class="hours-popup">
+                                    <div id="${hoursId}-hours"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${centerData.centerNotes ? `
+                        <div class="additional-info">
+                            <h4>Additional Information</h4>
+                            <p>${centerData.centerNotes}</p>
+                        </div>
+                    ` : ''}
+
+                    <div class="matches-container">
+                        <div class="matches-section matches-needs">
+                            <h4>Center's Inventory</h4>
+                            <ul>
+                                ${centerData?.inventory?.length > 0 ? 
+                                    centerData.inventory.map(item => `
+                                        <li>
+                                            <span class="match-item">${item.itemName || 'Unnamed Item'}</span>
+                                            ${item.quantity ? `<span class="match-quantity">(${item.quantity} available)</span>` : ''}
+                                        </li>
+                                    `).join('') : '<li class="no-matches">Center currently hasn\'t set up inventory</li>'
+                                }
+                            </ul>
+                        </div>
+                        <div class="matches-section matches-donations">
+                            <h4>Center's Needs</h4>
+                            <ul>
+                                ${centerData?.needs?.length > 0 ? 
+                                    centerData.needs.map(need => `
+                                        <li>
+                                            <span class="match-item">${need.itemName}</span>
+                                            ${need.quantity ? `<span class="match-quantity">(${need.quantity} needed)</span>` : ''}
+                                            ${need.urgency ? `<span class="urgency-tag ${need.urgency}-urgency">${need.urgency} urgency</span>` : ''}
+                                        </li>
+                                    `).join('') : '<li class="no-matches">Center currently hasn\'t set up needs</li>'
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                `;
+                
+                centersList.appendChild(centerCard);
+
+                // Queue hours update if operating hours exist
+                if (centerData.operatingHours) {
+                    hourUpdateTasks.push(() => {
+                        const hoursElement = document.querySelector(`#hoursOf_${doc.id}`);
+                        const statusElement = document.querySelector(`#hoursOf_${doc.id}-status`);
+                        const hoursContentElement = document.querySelector(`#hoursOf_${doc.id}-hours`);
+
+                        console.log(`Processing hours for center ${doc.id}`, {
+                            hoursElement: !!hoursElement,
+                            statusElement: !!statusElement,
+                            hoursContentElement: !!hoursContentElement
+                        });
+
+                        if (hoursElement && statusElement && hoursContentElement) {
+                            updateCenterHoursInline(hoursElement, centerData.operatingHours);
+                        } else {
+                            console.error(`Hours elements not found for center ${doc.id}`);
+                        }
+                    });
+                }
+            }
+        });
+
+        // Run hours update tasks after rendering
+        hourUpdateTasks.forEach(task => task());
+
+        if (!centersFoundWithinRadius) {
+            centersList.innerHTML = `
+                <div class="no-centers">
+                    No donation centers found within ${radius} miles
+                </div>
+            `;
+        }
+
+    } catch (error) {
+        console.error('Error fetching donation centers:', error);
+        centersList.innerHTML = `
+            <div class="error-message">
+                Unable to load donation centers. Please try again later.
+            </div>
+        `;
+    }
+}
+
+// New inline hours update function
+
+function updateCenterHoursInline(operatingHours, hoursId) {
+    console.log('Updating hours inline for hoursId:', hoursId);
+    
+    // Find status and hours elements using specific selectors
+    const statusEl = document.getElementById(`${hoursId}-status`);
+    const hoursEl = document.getElementById(`${hoursId}-hours`);
+
+    // Validate elements exist
+    if (!statusEl || !hoursEl) {
+        console.error('Could not find status or hours elements', {
+            hoursId: hoursId,
+            statusEl: !!statusEl,
+            hoursEl: !!hoursEl,
+            statusElExists: document.getElementById(`${hoursId}-status`) !== null,
+            hoursElExists: document.getElementById(`${hoursId}-hours`) !== null
+        });
+        return;
+    }
+
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const currentDay = days[new Date().getDay()];
+    const currentDate = new Date();
+    
+    // Use the exact field names from your Firebase structure
+    const todayHours = operatingHours[currentDay];
+
+    let hoursStatus = 'Closed';
+
+    if (todayHours && todayHours.open && todayHours.close) {
+        const [openHour, openMinute] = todayHours.open.split(':').map(Number);
+        const [closeHour, closeMinute] = todayHours.close.split(':').map(Number);
+        
+        const openTime = new Date();
+        openTime.setHours(openHour, openMinute, 0);
+        
+        const closeTime = new Date();
+        closeTime.setHours(closeHour, closeMinute, 0);
+
+        // Handle cases where closing time is past midnight
+        if (closeTime < openTime) {
+            closeTime.setDate(closeTime.getDate() + 1);
+        }
+
+        if (currentDate >= openTime && currentDate <= closeTime) {
+            hoursStatus = `Open until ${convertTo12HourFormat(todayHours.close)}`;
+        } else {
+            // Find the next open day
+            let foundOpenDay = false;
+            
+            // Check up to 7 days ahead
+            for (let i = 0; i < 7; i++) {
+                const checkIndex = (days.indexOf(currentDay) + i) % 7;
+                const checkDay = days[checkIndex];
+                const dayHours = operatingHours[checkDay];
+                
+                if (dayHours && dayHours.open) {
+                    const [nextOpenHour, nextOpenMinute] = dayHours.open.split(':').map(Number);
+                    const nextOpenTime = new Date();
+                    nextOpenTime.setHours(nextOpenHour, nextOpenMinute, 0);
+                    
+                    if (i === 0) {
+                        // Today: only show if the opening time hasn't passed
+                        if (currentDate < nextOpenTime) {
+                            hoursStatus = `Closed until ${convertTo12HourFormat(dayHours.open)}`;
+                            foundOpenDay = true;
+                            break;
+                        }
+                    } else {
+                        // Future days
+                        nextOpenTime.setDate(nextOpenTime.getDate() + i);
+                        if (i === 1) {
+                            hoursStatus = `Closed until ${convertTo12HourFormat(dayHours.open)} tomorrow`;
+                        } else {
+                            const dayName = checkDay.charAt(0).toUpperCase() + checkDay.slice(1);
+                            hoursStatus = `Closed until ${convertTo12HourFormat(dayHours.open)} ${dayName}`;
+                        }
+                        foundOpenDay = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (!foundOpenDay) {
+                hoursStatus = 'Closed';
+            }
+        }
+    }
+
+    // Update status
+    statusEl.textContent = hoursStatus;
+
+    // Populate full hours
+    const fullHoursHTML = days.map(day => {
+        const dayHours = operatingHours[day];
+        if (dayHours?.open && dayHours?.close) {
+            return `<div class="day-hours ${day === currentDay ? 'current-day' : ''}">
+                ${day.charAt(0).toUpperCase() + day.slice(1)}: 
+                ${convertTo12HourFormat(dayHours.open)} - ${convertTo12HourFormat(dayHours.close)}
+            </div>`;
+        }
+        return `<div class="day-hours">${day.charAt(0).toUpperCase() + day.slice(1)}: Closed</div>`;
+    }).join('');
+
+    hoursEl.innerHTML = fullHoursHTML;
+}
+
+async function updateDonationCenters(userData) {
+    console.log('Starting updateDonationCenters');
+    const radius = parseFloat(document.getElementById('radiusFilter').value);
+    
+    try {
+        const centersSnapshot = await firebase.firestore()
+            .collection('users')
+            .where('isDonationCenter', '==', true)
+            .get();
+
+        const centersList = document.getElementById('donationCentersList');
+        centersList.innerHTML = '';
+
+        let centersFoundWithinRadius = false;
+
+        centersSnapshot.forEach(doc => {
+            const centerData = doc.data();
+            
+            // Validate location data
+            if (!centerData.location || 
+                typeof centerData.location.latitude !== 'number' || 
+                typeof centerData.location.longitude !== 'number') {
+                console.warn(`Skipping center ${doc.id} due to invalid location data:`, centerData.location);
+                return;
+            }
+
+            // Calculate distance
+            const distance = calculateDistance(
+                userLocation.latitude,
+                userLocation.longitude,
+                centerData.location.latitude,
+                centerData.location.longitude
+            );
+
+            // Check if center is within radius
+            if (distance <= radius || radius === 999) {
+                centersFoundWithinRadius = true;
+                const hoursId = `hoursOf_${doc.id}`; 
+                const centerCard = document.createElement('div');
+                centerCard.className = 'center-card';
+                centerCard.setAttribute('data-center-id', doc.id);
+                centerCard.innerHTML = `
+                    <div class="center-header">
+                        <div class="center-main-info">
+                            <h3>${centerData.centerName || 'Unnamed Center'}</h3>
+                            ${centerData.contactInfo?.phone ? 
+                                `<p class="contact-detail">${centerData.contactInfo.phone}</p>` : ''}
+                            ${centerData.contactInfo?.email ? 
+                                `<p class="contact-detail">${centerData.contactInfo.email}</p>` : ''}
+                        </div>
+                        <div class="center-location">
+                            ${centerData.addressInfo ? `
+                                <p>${[
+                                    centerData.addressInfo.street,
+                                    centerData.addressInfo.unit ? `Unit ${centerData.addressInfo.unit}` : null,
+                                    centerData.addressInfo.city,
+                                    centerData.addressInfo.zipCode
+                                ].filter(Boolean).join(', ')}</p>` : ''}
+                            <p class="distance">${distance.toFixed(1)} miles away</p>
+                            <div class="center-hours" id="${hoursId}">
+                                <h4 id="${hoursId}-status">Hours Loading...</h4>
+                                <div class="hours-popup">
+                                    <div id="${hoursId}-hours"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${centerData.centerNotes ? `
+                        <div class="additional-info">
+                            <h4>Additional Information</h4>
+                            <p>${centerData.centerNotes}</p>
+                        </div>
+                    ` : ''}
+
+                    <div class="matches-container">
+                        <div class="matches-section matches-needs">
+                            <h4>Center's Inventory</h4>
+                            <ul>
+                                ${centerData?.inventory?.length > 0 ? 
+                                    centerData.inventory.map(item => `
+                                        <li>
+                                            <span class="match-item">${item.itemName || 'Unnamed Item'}</span>
+                                            ${item.quantity ? `<span class="match-quantity">(${item.quantity} available)</span>` : ''}
+                                        </li>
+                                    `).join('') : '<li class="no-matches">Center currently hasn\'t set up inventory</li>'
+                                }
+                            </ul>
+                        </div>
+                        <div class="matches-section matches-donations">
+                            <h4>Center's Needs</h4>
+                            <ul>
+                                ${centerData?.needs?.length > 0 ? 
+                                    centerData.needs.map(need => `
+                                        <li>
+                                            <span class="match-item">${need.itemName}</span>
+                                            ${need.quantity ? `<span class="match-quantity">(${need.quantity} needed)</span>` : ''}
+                                            ${need.urgency ? `<span class="urgency-tag ${need.urgency}-urgency">${need.urgency} urgency</span>` : ''}
+                                        </li>
+                                    `).join('') : '<li class="no-matches">Center currently hasn\'t set up needs</li>'
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                `;
+                
+                centersList.appendChild(centerCard);
+
+                // Hours update
+                if (centerData.operatingHours) {
+                    setTimeout(() => {
+                        try {
+                            console.log('Attempting to update hours for:', hoursId);
+                            console.log('Operating Hours:', centerData.operatingHours);
+                            
+                            updateCenterHoursInline(centerData.operatingHours, hoursId);
+                        } catch (error) {
+                            console.error('Error updating hours:', error);
+                        }
+                    }, 0);
+                }
+            }
+        });
+
+        if (!centersFoundWithinRadius) {
+            centersList.innerHTML = `
+                <div class="no-centers">
+                    No donation centers found within ${radius} miles
+                </div>
+            `;
+        }
+
+    } catch (error) {
+        console.error('Error fetching donation centers:', error);
+        centersList.innerHTML = `
+            <div class="error-message">
+                Unable to load donation centers. Please try again later.
+            </div>
+        `;
     }
 }
 
