@@ -136,7 +136,7 @@
                     <div class="settings-grid">
                         <!-- Top Row -->
                         <div class="settings-section">
-                            <h3 id="hoursHeader"></h3>
+                            <h3>Hours of Operations</h3>
                             <div class="hours-grid">
                                 <div class="day-row">
                                     <label>M</label>
@@ -324,322 +324,16 @@
     }
 
     // Update hours
-    const hoursHeaderEl = document.getElementById('hoursHeader');
-    const hoursContainerEl = document.getElementById('hoursOfOperation');
-    const hoursPopupEl = document.querySelector('#hoursOfOperation .hours-popup');
-
-    // Function to convert 24-hour time to 12-hour AM/PM format
-    function convertTo12HourFormat(time) {
-        let [hour, minute] = time.split(':');
-        hour = parseInt(hour);
-        const ampm = hour >= 12 ? 'PM' : 'AM';
-        hour = hour % 12;
-        hour = hour ? hour : 12; // the hour '0' should be '12'
-        minute = minute.padStart(2, '0');
-        return `${hour}:${minute} ${ampm}`;
-    }
-
-    if (hoursContainerEl && userData.operatingHours) {
-        let hoursStatus = 'Closed';
-        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-        const currentDay = days[new Date().getDay()];
-        const todayHours = userData.operatingHours[currentDay];
-
-        if (todayHours && todayHours.open && todayHours.close) {
-            const [openHour, openMinute] = todayHours.open.split(':').map(Number);
-            const [closeHour, closeMinute] = todayHours.close.split(':').map(Number);
-            const openTime = new Date();
-            openTime.setHours(openHour, openMinute, 0);
-            const closeTime = new Date();
-            closeTime.setHours(closeHour, closeMinute, 0);
-
-            // Handle cases where closing time is past midnight
-            if (closeTime < openTime) {
-                closeTime.setDate(closeTime.getDate() + 1);
-            }
-
-            const currentDate = new Date();
-            if (currentDate >= openTime && currentDate <= closeTime) {
-                hoursStatus = `Open until ${convertTo12HourFormat(todayHours.close)}`;
-            } else {
-                hoursStatus = `Closed until ${convertTo12HourFormat(todayHours.open)}`;
-            }
-        }
-
-        hoursHeaderEl.textContent = hoursStatus;
-
-        // Update the hours popup
-        let hoursPopupContent = '';
-        days.forEach(day => {
-            const dayHours = userData.operatingHours[day];
-            if (dayHours && dayHours.open && dayHours.close) {
-                hoursPopupContent += `<div class="day-hours">${day.charAt(0).toUpperCase() + day.slice(1)}: ${convertTo12HourFormat(dayHours.open)} - ${convertTo12HourFormat(dayHours.close)}</div>`;
-            } else {
-                hoursPopupContent += `<div class="day-hours">${day.charAt(0).toUpperCase() + day.slice(1)}: Closed</div>`;
-            }
-        });
-        hoursPopupEl.innerHTML = hoursPopupContent;
-    }
-
-    // Update notes
-    const notesEl = document.getElementById('previewNotes');
-    if (notesEl) {
-        notesEl.textContent = userData.centerNotes || 'No additional information provided';
-    }
-
-    // Update inventory
-    const inventoryListEl = document.getElementById('previewInventory');
-    if (inventoryListEl) {
-        if (Array.isArray(userData.inventory) && userData.inventory.length > 0) {
-            inventoryListEl.innerHTML = userData.inventory.map(item => `
-                <li>
-                    <span class="match-item">${item.itemName || 'Unnamed Item'}</span>
-                    ${item.quantity ? `<span class="match-quantity">(${item.quantity} available)</span>` : ''}
-                </li>
-            `).join('');
-        } else {
-            inventoryListEl.innerHTML = '<li class="no-matches">Center currently hasn\'t set up inventory</li>';
-        }
-    }
-
-    // Update needs
-    const needsListEl = document.getElementById('previewNeeds');
-    if (needsListEl) {
-        if (Array.isArray(userData.needs) && userData.needs.length > 0) {
-            needsListEl.innerHTML = userData.needs.map(need => `
-                <li>
-                    <span class="match-item">${need.itemName || 'Unnamed Item'}</span>
-                    ${need.quantity ? `<span class="match-quantity">(${need.quantity} needed)</span>` : ''}
-                    ${need.urgency ? `<span class="urgency-tag ${need.urgency}-urgency">${need.urgency}</span>` : ''}
-                </li>
-            `).join('');
-        } else {
-            needsListEl.innerHTML = '<li class="no-matches">Center currently hasn\'t set up needs</li>';
-        }
-    }
-}
-
-function loadCenterInformation(userData) {
-            if (!userData) return;
-
-            // Update hours header with current status
-            const hoursHeader = document.getElementById('hoursHeader');
-            if (hoursHeader && userData.operatingHours) {
-                const currentTime = getCurrentTime();
-                const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-                const currentDay = days[new Date().getDay()];
-                const todayHours = userData.operatingHours[currentDay];
-
-                let hoursStatus = '';
-                if (!todayHours || !todayHours.open || !todayHours.close) {
-                    hoursStatus = 'Closed';
-                } else {
-                    const [openHour, openMinute] = todayHours.open.split(':').map(Number);
-                    const [closeHour, closeMinute] = todayHours.close.split(':').map(Number);
-                    const openTime = new Date();
-                    openTime.setHours(openHour, openMinute, 0);
-                    const closeTime = new Date();
-                    closeTime.setHours(closeHour, closeMinute, 0);
-
-                    // Handle cases where closing time is past midnight
-                    if (closeTime < openTime) {
-                        closeTime.setDate(closeTime.getDate() + 1);
-                    }
-
-                    const currentDate = new Date();
-                    if (currentDate >= openTime && currentDate <= closeTime) {
-                        hoursStatus = `Open until ${convertTo12HourFormat(todayHours.close)}`;
-                    } else {
-                        hoursStatus = `Closed until ${convertTo12HourFormat(todayHours.open)}`;
-                    }
-                }
-                hoursHeader.textContent = hoursStatus;
-            }
-
-    // Load hours
-    if (userData.operatingHours) {
-        const hours = userData.operatingHours;
-        if (hours.monday) {
-            document.getElementById('monOpen').value = hours.monday.open || '';
-            document.getElementById('monClose').value = hours.monday.close || '';
-        }
-        if (hours.tuesday) {
-            document.getElementById('tueOpen').value = hours.tuesday.open || '';
-            document.getElementById('tueClose').value = hours.tuesday.close || '';
-        }
-        if (hours.wednesday) {
-            document.getElementById('wedOpen').value = hours.wednesday.open || '';
-            document.getElementById('wedClose').value = hours.wednesday.close || '';
-        }
-        if (hours.thursday) {
-            document.getElementById('thuOpen').value = hours.thursday.open || '';
-            document.getElementById('thuClose').value = hours.thursday.close || '';
-        }
-        if (hours.friday) {
-            document.getElementById('friOpen').value = hours.friday.open || '';
-            document.getElementById('friClose').value = hours.friday.close || '';
-        }
-        if (hours.saturday) {
-            document.getElementById('satOpen').value = hours.saturday.open || '';
-            document.getElementById('satClose').value = hours.saturday.close || '';
-        }
-        if (hours.sunday) {
-            document.getElementById('sunOpen').value = hours.sunday.open || '';
-            document.getElementById('sunClose').value = hours.sunday.close || '';
-        }
-    }
-
-    // Load contact info
-    if (userData.contactInfo) {
-        document.getElementById('phoneNumber').value = userData.contactInfo.phone || '';
-        document.getElementById('contactEmail').value = userData.contactInfo.email || '';
-    }
-
-    // Load location info
-    if (userData.addressInfo) {
-        document.getElementById('streetAddress').value = userData.addressInfo.street || '';
-        document.getElementById('unit').value = userData.addressInfo.unit || '';
-        document.getElementById('city').value = userData.addressInfo.city || '';
-        document.getElementById('zipCode').value = userData.addressInfo.zipCode || '';
-    }
-
-    // Load notes
-    document.getElementById('centerNotes').value = userData.centerNotes || '';
-}
-
-async function saveProfileChanges() {
-    try {
-        const user = firebase.auth().currentUser;
-        if (!user) return;
-
-        // Collect hours data
-        const hours = {
-            monday: {
-                open: document.getElementById('monOpen').value || null,
-                close: document.getElementById('monClose').value || null
-            },
-            tuesday: {
-                open: document.getElementById('tueOpen').value || null,
-                close: document.getElementById('tueClose').value || null
-            },
-            wednesday: {
-                open: document.getElementById('wedOpen').value || null,
-                close: document.getElementById('wedClose').value || null
-            },
-            thursday: {
-                open: document.getElementById('thuOpen').value || null,
-                close: document.getElementById('thuClose').value || null
-            },
-            friday: {
-                open: document.getElementById('friOpen').value || null,
-                close: document.getElementById('friClose').value || null
-            },
-            saturday: {
-                open: document.getElementById('satOpen').value || null,
-                close: document.getElementById('satClose').value || null
-            },
-            sunday: {
-                open: document.getElementById('sunOpen').value || null,
-                close: document.getElementById('sunClose').value || null
-            }
-        };
-
-        // Collect contact and location information
-        const contactInfo = {
-            phone: document.getElementById('phoneNumber').value || null,
-            email: document.getElementById('contactEmail').value || null
-        };
-
-        const locationInfo = {
-            street: document.getElementById('streetAddress').value || null,
-            unit: document.getElementById('unit').value || null,
-            city: document.getElementById('city').value || null,
-            zipCode: document.getElementById('zipCode').value || null
-        };
-
-        const centerNotes = document.getElementById('centerNotes').value || null;
-
-        // Update in Firestore
-        const userRef = firebase.firestore().collection('users').doc(user.uid);
-        const updatedUserData = {
-            operatingHours: hours,
-            contactInfo: contactInfo,
-            addressInfo: locationInfo,
-            centerNotes: centerNotes,
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-        };
-        await userRef.update(updatedUserData);
-
-        // Update the center card preview with the new data
-        updateCenterCardPreview(updatedUserData);
-
-    } catch (error) {
-        console.error('Error saving profile changes:', error);
-        alert('Error saving changes. Please try again.');
-    }
-}
-
-function updateCenterCardPreview(userData) {
-    if (!userData) {
-        console.error('No user data provided to updateCenterCardPreview');
-        return;
-    }
-
-    // Update center name
-    const centerNameEl = document.getElementById('previewCenterName');
-    if (centerNameEl) {
-        centerNameEl.textContent = userData.centerName || 'Unnamed Center';
-    }
-
-    // Update address
-    const addressEl = document.getElementById('previewAddress');
-    if (addressEl && userData.addressInfo) {
-        let address = [
-            userData.addressInfo.street,
-            userData.addressInfo.unit ? `Unit ${userData.addressInfo.unit}` : null,
-            userData.addressInfo.city,
-            userData.addressInfo.zipCode
-        ].filter(Boolean).join(', ');
-        addressEl.textContent = address || 'Address not provided';
-    }
-
-    // Update distance
-    const distanceEl = document.getElementById('previewDistance');
-    if (distanceEl) {
-        distanceEl.textContent = '0 miles away';
-    }
-
-    // Update phone and email
-    const phoneEl = document.getElementById('previewPhone');
-    const emailEl = document.getElementById('previewEmail');
-    if (phoneEl && emailEl && userData.contactInfo) {
-        phoneEl.textContent = userData.contactInfo.phone || 'No phone number provided';
-        emailEl.textContent = userData.contactInfo.email || 'No email provided';
-    }
-
-    // Update hours
-    const hoursHeaderEl = document.getElementById('hoursHeader');
     const hoursStatusEl = document.getElementById('hoursStatus');
     const hoursContainerEl = document.getElementById('hoursOfOperation');
     const hoursPopupEl = document.querySelector('#hoursOfOperation .hours-popup');
-
-    // Function to convert 24-hour time to 12-hour AM/PM format
-    function convertTo12HourFormat(time) {
-        if (!time) return '';
-        let [hour, minute] = time.split(':');
-        hour = parseInt(hour);
-        const ampm = hour >= 12 ? 'PM' : 'AM';
-        hour = hour % 12;
-        hour = hour ? hour : 12; // the hour '0' should be '12'
-        minute = minute.padStart(2, '0');
-        return `${hour}:${minute} ${ampm}`;
-    }
 
     if (hoursContainerEl && userData.operatingHours) {
         let hoursStatus = 'Closed';
         const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
         const currentDay = days[new Date().getDay()];
         const todayHours = userData.operatingHours[currentDay];
+        const currentDate = new Date();
 
         if (todayHours && todayHours.open && todayHours.close) {
             const [openHour, openMinute] = todayHours.open.split(':').map(Number);
@@ -654,18 +348,52 @@ function updateCenterCardPreview(userData) {
                 closeTime.setDate(closeTime.getDate() + 1);
             }
 
-            const currentDate = new Date();
             if (currentDate >= openTime && currentDate <= closeTime) {
                 hoursStatus = `Open until ${convertTo12HourFormat(todayHours.close)}`;
             } else {
-                hoursStatus = `Closed until ${convertTo12HourFormat(todayHours.open)}`;
+                // Find the next open day
+                let foundOpenDay = false;
+                
+                // Check up to 7 days ahead
+                for (let i = 0; i < 7; i++) {
+                    const checkIndex = (days.indexOf(currentDay) + i) % 7;
+                    const checkDay = days[checkIndex];
+                    const dayHours = userData.operatingHours[checkDay];
+                    
+                    if (dayHours && dayHours.open) {
+                        const [nextOpenHour, nextOpenMinute] = dayHours.open.split(':').map(Number);
+                        const nextOpenTime = new Date();
+                        nextOpenTime.setHours(nextOpenHour, nextOpenMinute, 0);
+                        
+                        if (i === 0) {
+                            // Today: only show if the opening time hasn't passed
+                            if (currentDate < nextOpenTime) {
+                                hoursStatus = `Closed until ${convertTo12HourFormat(dayHours.open)}`;
+                                foundOpenDay = true;
+                                break;
+                            }
+                        } else {
+                            // Future days
+                            nextOpenTime.setDate(nextOpenTime.getDate() + i);
+                            if (i === 1) {
+                                hoursStatus = `Closed until ${convertTo12HourFormat(dayHours.open)} tomorrow`;
+                            } else {
+                                const dayName = checkDay.charAt(0).toUpperCase() + checkDay.slice(1);
+                                hoursStatus = `Closed until ${convertTo12HourFormat(dayHours.open)} ${dayName}`;
+                            }
+                            foundOpenDay = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (!foundOpenDay) {
+                    hoursStatus = 'Closed';
+                }
             }
         }
 
-        // Update both hours status elements
-        if (hoursHeaderEl) {
-            hoursHeaderEl.textContent = hoursStatus;
-        }
+        // Update hours status element
         if (hoursStatusEl) {
             hoursStatusEl.textContent = hoursStatus;
         }
@@ -721,6 +449,60 @@ function updateCenterCardPreview(userData) {
             needsListEl.innerHTML = '<li class="no-matches">Center currently hasn\'t set up needs</li>';
         }
     }
+}
+
+function loadCenterInformation(userData) {
+    if (!userData) return;
+
+    // Load hours
+    if (userData.operatingHours) {
+        const hours = userData.operatingHours;
+        if (hours.monday) {
+            document.getElementById('monOpen').value = hours.monday.open || '';
+            document.getElementById('monClose').value = hours.monday.close || '';
+        }
+        if (hours.tuesday) {
+            document.getElementById('tueOpen').value = hours.tuesday.open || '';
+            document.getElementById('tueClose').value = hours.tuesday.close || '';
+        }
+        if (hours.wednesday) {
+            document.getElementById('wedOpen').value = hours.wednesday.open || '';
+            document.getElementById('wedClose').value = hours.wednesday.close || '';
+        }
+        if (hours.thursday) {
+            document.getElementById('thuOpen').value = hours.thursday.open || '';
+            document.getElementById('thuClose').value = hours.thursday.close || '';
+        }
+        if (hours.friday) {
+            document.getElementById('friOpen').value = hours.friday.open || '';
+            document.getElementById('friClose').value = hours.friday.close || '';
+        }
+        if (hours.saturday) {
+            document.getElementById('satOpen').value = hours.saturday.open || '';
+            document.getElementById('satClose').value = hours.saturday.close || '';
+        }
+        if (hours.sunday) {
+            document.getElementById('sunOpen').value = hours.sunday.open || '';
+            document.getElementById('sunClose').value = hours.sunday.close || '';
+        }
+    }
+
+    // Load contact info
+    if (userData.contactInfo) {
+        document.getElementById('phoneNumber').value = userData.contactInfo.phone || '';
+        document.getElementById('contactEmail').value = userData.contactInfo.email || '';
+    }
+
+    // Load location info
+    if (userData.addressInfo) {
+        document.getElementById('streetAddress').value = userData.addressInfo.street || '';
+        document.getElementById('unit').value = userData.addressInfo.unit || '';
+        document.getElementById('city').value = userData.addressInfo.city || '';
+        document.getElementById('zipCode').value = userData.addressInfo.zipCode || '';
+    }
+
+    // Load notes
+    document.getElementById('centerNotes').value = userData.centerNotes || '';
 }
 
 function switchTab(tabName) {
@@ -887,6 +669,85 @@ function switchTab(tabName) {
         window.location.href = '/login';
     }
 });
+
+async function saveProfileChanges() {
+    try {
+        const user = firebase.auth().currentUser;
+        if (!user) return;
+
+        // Collect hours data
+        const hours = {
+            monday: {
+                open: document.getElementById('monOpen').value || null,
+                close: document.getElementById('monClose').value || null
+            },
+            tuesday: {
+                open: document.getElementById('tueOpen').value || null,
+                close: document.getElementById('tueClose').value || null
+            },
+            wednesday: {
+                open: document.getElementById('wedOpen').value || null,
+                close: document.getElementById('wedClose').value || null
+            },
+            thursday: {
+                open: document.getElementById('thuOpen').value || null,
+                close: document.getElementById('thuClose').value || null
+            },
+            friday: {
+                open: document.getElementById('friOpen').value || null,
+                close: document.getElementById('friClose').value || null
+            },
+            saturday: {
+                open: document.getElementById('satOpen').value || null,
+                close: document.getElementById('satClose').value || null
+            },
+            sunday: {
+                open: document.getElementById('sunOpen').value || null,
+                close: document.getElementById('sunClose').value || null
+            }
+        };
+
+        // Collect contact and location information
+        const contactInfo = {
+            phone: document.getElementById('phoneNumber').value || null,
+            email: document.getElementById('contactEmail').value || null
+        };
+
+        const locationInfo = {
+            street: document.getElementById('streetAddress').value || null,
+            unit: document.getElementById('unit').value || null,
+            city: document.getElementById('city').value || null,
+            zipCode: document.getElementById('zipCode').value || null
+        };
+
+        const centerNotes = document.getElementById('centerNotes').value || null;
+
+        // Get current user data first
+        const userRef = firebase.firestore().collection('users').doc(user.uid);
+        const userDoc = await userRef.get();
+        const currentUserData = userDoc.data();
+
+        // Create updated data object
+        const updatedUserData = {
+            ...currentUserData,  // Keep all existing data
+            operatingHours: hours,
+            contactInfo: contactInfo,
+            addressInfo: locationInfo,
+            centerNotes: centerNotes,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        // Update in Firestore
+        await userRef.update(updatedUserData);
+
+        // Update the center card preview with the complete merged data
+        updateCenterCardPreview(updatedUserData);
+
+    } catch (error) {
+        console.error('Error saving profile changes:', error);
+        alert('Error saving changes. Please try again.');
+    }
+}
         async function goToProfile(event) {
             event.preventDefault();
             const user = firebase.auth().currentUser;
