@@ -710,8 +710,8 @@ input[type="number"]::placeholder {
 }
 
 .highlight-match {
-    background-color: #c8e6c9; /* Light green background for matches */
-    border: 2px solid #388e3c; /* Darker green border */
+    background-color: #fef680;
+    border: 2px solid #f6ff00; 
     font-weight: bold;
     padding: 5px;
     border-radius: 4px;

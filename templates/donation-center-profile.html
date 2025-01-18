@@ -5,6 +5,8 @@
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>Donation Center Profile</title>
    <link rel="stylesheet" href="/static/css/donationcenterProfile.css">
+   <link rel="stylesheet" href="/static/css/item-dropdown-styles.css">
+   <script src="/static/js/item-searchable-dropdown.js"></script>
 </head>
 <body>
    <nav class="navbar">
@@ -305,6 +307,7 @@
             </form>
         </div>
     `;
+    setTimeout(reinitializeItemDropdowns, 0);
     document.body.appendChild(popup);
 
     let rowCount = 1;
@@ -336,11 +339,13 @@
             </div>
             <button type="button" class="remove-row-btn" onclick="this.parentElement.remove()">×</button>
         `;
+        setTimeout(reinitializeItemDropdowns, 0);
         container.appendChild(newRow);
         rowCount++;
     };
 
     document.getElementById('needsForm').addEventListener('submit', async (e) => {
+        if (!validateItemInputs('needsForm')) return;
         e.preventDefault();
         try {
             const user = firebase.auth().currentUser;
@@ -410,6 +415,7 @@
                </form>
            </div>
        `;
+       setTimeout(reinitializeItemDropdowns, 0);
        document.body.appendChild(popup);
 
        let rowCount = 1;
@@ -433,6 +439,7 @@
                </div>
                <button type="button" class="remove-row-btn" onclick="this.parentElement.remove()">×</button>
            `;
+           setTimeout(reinitializeItemDropdowns, 0);
            container.appendChild(newRow);
            rowCount++;
        };

@@ -1,0 +1,40 @@
+/* Searchable Dropdown Styles */
+.searchable-dropdown-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.searchable-dropdown-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.searchable-dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-top: none;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.searchable-dropdown-list div {
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.searchable-dropdown-list div:hover {
+    background-color: #f0f0f0;
+}
+
+.searchable-dropdown-list div:active {
+    background-color: #e0e0e0;
+}

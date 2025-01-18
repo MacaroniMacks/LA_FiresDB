@@ -5,6 +5,8 @@
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>Neighbor Profile</title>
    <link rel="stylesheet" href="/static/css/neighborProfile.css">
+   <link rel="stylesheet" href="/static/css/item-dropdown-styles.css">
+   <script src="/static/js/item-searchable-dropdown.js"></script>
 </head>
 <body>
    <nav class="navbar">
@@ -326,6 +328,7 @@ editToggleButton.addEventListener('click', async () => {
             </form>
         </div>
     `;
+    setTimeout(initializeItemDropdowns, 0);
     document.body.appendChild(popup);
 
     let rowCount = 1;
@@ -357,12 +360,14 @@ editToggleButton.addEventListener('click', async () => {
             </div>
             <button type="button" class="remove-row-btn" onclick="this.parentElement.remove()">×</button>
         `;
+        setTimeout(initializeItemDropdowns, 0);
         container.appendChild(newRow);
         rowCount++;
     };
 
     document.getElementById('needsForm').addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (!validateItemInputs('needsForm')) return;
         try {
             const user = firebase.auth().currentUser;
             const needItems = [];
@@ -431,6 +436,7 @@ function addDonations() {
             </form>
         </div>
     `;
+    setTimeout(initializeItemDropdowns, 0);
     document.body.appendChild(popup);
 
     let rowCount = 1;
@@ -454,6 +460,7 @@ function addDonations() {
             </div>
             <button type="button" class="remove-row-btn" onclick="this.parentElement.remove()">×</button>
         `;
+        setTimeout(initializeItemDropdowns, 0);
         container.appendChild(newRow);
         rowCount++;
     };

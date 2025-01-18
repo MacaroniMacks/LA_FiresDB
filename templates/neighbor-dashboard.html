@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neighbor Dashboard</title>
     <link rel="stylesheet" href="/static/css/neighborDash.css">
+    <link rel="stylesheet" href="/static/css/item-dropdown-styles.css">
+    <script src="/static/js/item-searchable-dropdown.js"></script>
 </head>
 <body>
     <nav class="navbar">
@@ -478,7 +480,7 @@ function viewCenter(centerId) {
                     </form>
                 </div>
             `;
-
+            setTimeout(initializeItemDropdowns, 0);
             // Add global function for urgency selection
             window.selectUrgency = function(element) {
                 const parent = element.closest('.urgency-selector');
@@ -519,12 +521,15 @@ function viewCenter(centerId) {
                     </div>
                     <button type="button" class="remove-row-btn" onclick="this.parentElement.remove()">×</button>
                 `;
+                setTimeout(initializeItemDropdowns, 0);
                 container.appendChild(newRow);
                 rowCount++;
             };
+            
 
             document.getElementById('needsForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
+                if (!validateItemInputs('needsForm')) return;
                 try {
                     const user = firebase.auth().currentUser;
                     const needItems = [];
@@ -587,6 +592,7 @@ function viewCenter(centerId) {
                </div>
            `;
 
+           setTimeout(initializeItemDropdowns, 0);
            let rowCount = 1;
 
            window.addDonationRow = function() {
@@ -608,6 +614,7 @@ function viewCenter(centerId) {
                    </div>
                    <button type="button" class="remove-row-btn" onclick="this.parentElement.remove()">×</button>
                `;
+               setTimeout(initializeItemDropdowns, 0);
                container.appendChild(newRow);
                rowCount++;
            };
