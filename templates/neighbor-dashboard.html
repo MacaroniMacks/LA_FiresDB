@@ -200,6 +200,7 @@ async function updateDonationCenters(userData) {
                         </div>
                     </div>
                 `;
+                highlightMatchingItems(userData, centerData);
                 
                 centersList.appendChild(centerCard);
             }
@@ -215,161 +216,6 @@ async function updateDonationCenters(userData) {
 
     } catch (error) {
         console.error('Error fetching donation centers:', error);
-    }
-}
-
-async function updateDonationCenters(userData) {
-    console.log('Starting updateDonationCenters');
-    const radius = parseFloat(document.getElementById('radiusFilter').value);
-    
-    try {
-        const centersSnapshot = await firebase.firestore()
-            .collection('users')
-            .where('isDonationCenter', '==', true)
-            .get();
-
-        const centersList = document.getElementById('donationCentersList');
-        centersList.innerHTML = '';
-
-        let centersFoundWithinRadius = false;
-
-        // Prepare hours update tasks
-        const hourUpdateTasks = [];
-
-        centersSnapshot.forEach(doc => {
-            const centerData = doc.data();
-            
-            // Validate location data
-            if (!centerData.location || 
-                typeof centerData.location.latitude !== 'number' || 
-                typeof centerData.location.longitude !== 'number') {
-                console.warn(`Skipping center ${doc.id} due to invalid location data:`, centerData.location);
-                return;
-            }
-
-            // Calculate distance
-            const distance = calculateDistance(
-                userLocation.latitude,
-                userLocation.longitude,
-                centerData.location.latitude,
-                centerData.location.longitude
-            );
-
-            // Check if center is within radius
-            if (distance <= radius || radius === 999) {
-                centersFoundWithinRadius = true;
-                const hoursId = `hoursOf_${doc.id}`; 
-                const centerCard = document.createElement('div');
-                centerCard.className = 'center-card';
-                centerCard.setAttribute('data-center-id', doc.id);
-                centerCard.innerHTML = `
-                    <div class="center-header">
-                        <div class="center-main-info">
-                            <h3>${centerData.centerName || 'Unnamed Center'}</h3>
-                            ${centerData.contactInfo?.phone ? 
-                                `<p class="contact-detail">${centerData.contactInfo.phone}</p>` : ''}
-                            ${centerData.contactInfo?.email ? 
-                                `<p class="contact-detail">${centerData.contactInfo.email}</p>` : ''}
-                        </div>
-                        <div class="center-location">
-                            ${centerData.addressInfo ? `
-                                <p>${[
-                                    centerData.addressInfo.street,
-                                    centerData.addressInfo.unit ? `Unit ${centerData.addressInfo.unit}` : null,
-                                    centerData.addressInfo.city,
-                                    centerData.addressInfo.zipCode
-                                ].filter(Boolean).join(', ')}</p>` : ''}
-                            <p class="distance">${distance.toFixed(1)} miles away</p>
-                            <div class="center-hours" id="${hoursId}">
-                                <h4 id="${hoursId}-status">Hours Loading...</h4>
-                                <div class="hours-popup">
-                                    <div id="${hoursId}-hours"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    ${centerData.centerNotes ? `
-                        <div class="additional-info">
-                            <h4>Additional Information</h4>
-                            <p>${centerData.centerNotes}</p>
-                        </div>
-                    ` : ''}
-
-                    <div class="matches-container">
-                        <div class="matches-section matches-needs">
-                            <h4>Center's Inventory</h4>
-                            <ul>
-                                ${centerData?.inventory?.length > 0 ? 
-                                    centerData.inventory.map(item => `
-                                        <li>
-                                            <span class="match-item">${item.itemName || 'Unnamed Item'}</span>
-                                            ${item.quantity ? `<span class="match-quantity">(${item.quantity} available)</span>` : ''}
-                                        </li>
-                                    `).join('') : '<li class="no-matches">Center currently hasn\'t set up inventory</li>'
-                                }
-                            </ul>
-                        </div>
-                        <div class="matches-section matches-donations">
-                            <h4>Center's Needs</h4>
-                            <ul>
-                                ${centerData?.needs?.length > 0 ? 
-                                    centerData.needs.map(need => `
-                                        <li>
-                                            <span class="match-item">${need.itemName}</span>
-                                            ${need.quantity ? `<span class="match-quantity">(${need.quantity} needed)</span>` : ''}
-                                            ${need.urgency ? `<span class="urgency-tag ${need.urgency}-urgency">${need.urgency} urgency</span>` : ''}
-                                        </li>
-                                    `).join('') : '<li class="no-matches">Center currently hasn\'t set up needs</li>'
-                                }
-                            </ul>
-                        </div>
-                    </div>
-                `;
-                
-                centersList.appendChild(centerCard);
-
-                // Queue hours update if operating hours exist
-                if (centerData.operatingHours) {
-                    hourUpdateTasks.push(() => {
-                        const hoursElement = document.querySelector(`#hoursOf_${doc.id}`);
-                        const statusElement = document.querySelector(`#hoursOf_${doc.id}-status`);
-                        const hoursContentElement = document.querySelector(`#hoursOf_${doc.id}-hours`);
-
-                        console.log(`Processing hours for center ${doc.id}`, {
-                            hoursElement: !!hoursElement,
-                            statusElement: !!statusElement,
-                            hoursContentElement: !!hoursContentElement
-                        });
-
-                        if (hoursElement && statusElement && hoursContentElement) {
-                            updateCenterHoursInline(hoursElement, centerData.operatingHours);
-                        } else {
-                            console.error(`Hours elements not found for center ${doc.id}`);
-                        }
-                    });
-                }
-            }
-        });
-
-        // Run hours update tasks after rendering
-        hourUpdateTasks.forEach(task => task());
-
-        if (!centersFoundWithinRadius) {
-            centersList.innerHTML = `
-                <div class="no-centers">
-                    No donation centers found within ${radius} miles
-                </div>
-            `;
-        }
-
-    } catch (error) {
-        console.error('Error fetching donation centers:', error);
-        centersList.innerHTML = `
-            <div class="error-message">
-                Unable to load donation centers. Please try again later.
-            </div>
-        `;
     }
 }
 
@@ -481,147 +327,6 @@ function updateCenterHoursInline(operatingHours, hoursId) {
     hoursEl.innerHTML = fullHoursHTML;
 }
 
-async function updateDonationCenters(userData) {
-    console.log('Starting updateDonationCenters');
-    const radius = parseFloat(document.getElementById('radiusFilter').value);
-    
-    try {
-        const centersSnapshot = await firebase.firestore()
-            .collection('users')
-            .where('isDonationCenter', '==', true)
-            .get();
-
-        const centersList = document.getElementById('donationCentersList');
-        centersList.innerHTML = '';
-
-        let centersFoundWithinRadius = false;
-
-        centersSnapshot.forEach(doc => {
-            const centerData = doc.data();
-            
-            // Validate location data
-            if (!centerData.location || 
-                typeof centerData.location.latitude !== 'number' || 
-                typeof centerData.location.longitude !== 'number') {
-                console.warn(`Skipping center ${doc.id} due to invalid location data:`, centerData.location);
-                return;
-            }
-
-            // Calculate distance
-            const distance = calculateDistance(
-                userLocation.latitude,
-                userLocation.longitude,
-                centerData.location.latitude,
-                centerData.location.longitude
-            );
-
-            // Check if center is within radius
-            if (distance <= radius || radius === 999) {
-                centersFoundWithinRadius = true;
-                const hoursId = `hoursOf_${doc.id}`; 
-                const centerCard = document.createElement('div');
-                centerCard.className = 'center-card';
-                centerCard.setAttribute('data-center-id', doc.id);
-                centerCard.innerHTML = `
-                    <div class="center-header">
-                        <div class="center-main-info">
-                            <h3>${centerData.centerName || 'Unnamed Center'}</h3>
-                            ${centerData.contactInfo?.phone ? 
-                                `<p class="contact-detail">${centerData.contactInfo.phone}</p>` : ''}
-                            ${centerData.contactInfo?.email ? 
-                                `<p class="contact-detail">${centerData.contactInfo.email}</p>` : ''}
-                        </div>
-                        <div class="center-location">
-                            ${centerData.addressInfo ? `
-                                <p>${[
-                                    centerData.addressInfo.street,
-                                    centerData.addressInfo.unit ? `Unit ${centerData.addressInfo.unit}` : null,
-                                    centerData.addressInfo.city,
-                                    centerData.addressInfo.zipCode
-                                ].filter(Boolean).join(', ')}</p>` : ''}
-                            <p class="distance">${distance.toFixed(1)} miles away</p>
-                            <div class="center-hours" id="${hoursId}">
-                                <h4 id="${hoursId}-status">Hours Loading...</h4>
-                                <div class="hours-popup">
-                                    <div id="${hoursId}-hours"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    ${centerData.centerNotes ? `
-                        <div class="additional-info">
-                            <h4>Additional Information</h4>
-                            <p>${centerData.centerNotes}</p>
-                        </div>
-                    ` : ''}
-
-                    <div class="matches-container">
-                        <div class="matches-section matches-needs">
-                            <h4>Center's Inventory</h4>
-                            <ul>
-                                ${centerData?.inventory?.length > 0 ? 
-                                    centerData.inventory.map(item => `
-                                        <li>
-                                            <span class="match-item">${item.itemName || 'Unnamed Item'}</span>
-                                            ${item.quantity ? `<span class="match-quantity">(${item.quantity} available)</span>` : ''}
-                                        </li>
-                                    `).join('') : '<li class="no-matches">Center currently hasn\'t set up inventory</li>'
-                                }
-                            </ul>
-                        </div>
-                        <div class="matches-section matches-donations">
-                            <h4>Center's Needs</h4>
-                            <ul>
-                                ${centerData?.needs?.length > 0 ? 
-                                    centerData.needs.map(need => `
-                                        <li>
-                                            <span class="match-item">${need.itemName}</span>
-                                            ${need.quantity ? `<span class="match-quantity">(${need.quantity} needed)</span>` : ''}
-                                            ${need.urgency ? `<span class="urgency-tag ${need.urgency}-urgency">${need.urgency} urgency</span>` : ''}
-                                        </li>
-                                    `).join('') : '<li class="no-matches">Center currently hasn\'t set up needs</li>'
-                                }
-                            </ul>
-                        </div>
-                    </div>
-                `;
-                
-                centersList.appendChild(centerCard);
-
-                // Hours update
-                if (centerData.operatingHours) {
-                    setTimeout(() => {
-                        try {
-                            console.log('Attempting to update hours for:', hoursId);
-                            console.log('Operating Hours:', centerData.operatingHours);
-                            
-                            updateCenterHoursInline(centerData.operatingHours, hoursId);
-                        } catch (error) {
-                            console.error('Error updating hours:', error);
-                        }
-                    }, 0);
-                }
-            }
-        });
-
-        if (!centersFoundWithinRadius) {
-            centersList.innerHTML = `
-                <div class="no-centers">
-                    No donation centers found within ${radius} miles
-                </div>
-            `;
-        }
-
-    } catch (error) {
-        console.error('Error fetching donation centers:', error);
-        centersList.innerHTML = `
-            <div class="error-message">
-                Unable to load donation centers. Please try again later.
-            </div>
-        `;
-    }
-}
 
 // Updated findMatches function with better null checks
 function findMatches(userItems = [], centerItems = []) {
@@ -935,6 +640,69 @@ function viewCenter(centerId) {
             }
         });
        }
+
+       function highlightMatchingItems(userData, centerData) {
+    if (!userData || !centerData) {
+        console.error('userData or centerData is null or undefined');
+        return;
+    }
+
+    // Log the userData and centerData
+    console.log('userData.needs:', userData.needs);
+    console.log('centerData.inventory:', centerData.inventory);
+    console.log('userData.canDonate:', userData.canDonate);
+    console.log('centerData.needs:', centerData.needs);
+
+    // Default to empty arrays if the properties don't exist or are null/undefined
+    const userNeeds = userData.needs || [];
+    const userDonateItems = userData.canDonate || [];
+
+    // Get all the inventory items in the Center's Inventory section
+    const inventoryItems = document.querySelectorAll('.matches-section .match-item');
+    
+    if (!inventoryItems) {
+        console.error('No inventory items found');
+        return;
+    }
+
+    // For each item in the Center's Inventory, check if it matches a user’s need
+    inventoryItems.forEach(inventoryItem => {
+        const inventoryName = inventoryItem.textContent.trim().toLowerCase();
+
+        // Check if the center inventory item matches any of the user's needs
+        const match = userNeeds.some(userNeed => 
+            userNeed?.itemName?.toLowerCase() === inventoryName
+        );
+
+        if (match) {
+            inventoryItem.classList.add('highlight-match');
+        }
+    });
+
+    // Get all the need items in the Center's Needs section
+    const needItems = document.querySelectorAll('.matches-donations .match-item');
+    
+    if (!needItems) {
+        console.error('No need items found');
+        return;
+    }
+
+    // For each item in the Center's Needs, check if it matches a user’s donateable item
+    needItems.forEach(needItem => {
+        const needName = needItem.textContent.trim().toLowerCase();
+
+        // Check if the center need item matches any of the user's donateable items
+        const match = userDonateItems.some(userItem =>
+            userItem?.itemName?.toLowerCase() === needName
+        );
+
+        if (match) {
+            needItem.classList.add('highlight-match');
+        }
+    });
+}
+
+
 
        function closePopup() {
            const popup = document.querySelector('.popup');

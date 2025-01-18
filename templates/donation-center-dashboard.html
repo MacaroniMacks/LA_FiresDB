@@ -324,76 +324,80 @@
     }
 
     // Update hours
+    const hoursHeaderEl = document.getElementById('hoursHeader');
     const hoursStatusEl = document.getElementById('hoursStatus');
     const hoursContainerEl = document.getElementById('hoursOfOperation');
     const hoursPopupEl = document.querySelector('#hoursOfOperation .hours-popup');
 
     if (hoursContainerEl && userData.operatingHours) {
-        let hoursStatus = 'Closed';
-        const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-        const currentDay = days[new Date().getDay()];
-        const todayHours = userData.operatingHours[currentDay];
-        const currentDate = new Date();
+    let hoursStatus = 'Closed';
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const currentDay = days[new Date().getDay()];
+    const todayHours = userData.operatingHours[currentDay];
+    const currentDate = new Date();
 
-        if (todayHours && todayHours.open && todayHours.close) {
-            const [openHour, openMinute] = todayHours.open.split(':').map(Number);
-            const [closeHour, closeMinute] = todayHours.close.split(':').map(Number);
-            const openTime = new Date();
-            openTime.setHours(openHour, openMinute, 0);
-            const closeTime = new Date();
-            closeTime.setHours(closeHour, closeMinute, 0);
+    if (todayHours && todayHours.open && todayHours.close) {
+        const [openHour, openMinute] = todayHours.open.split(':').map(Number);
+        const [closeHour, closeMinute] = todayHours.close.split(':').map(Number);
+        const openTime = new Date();
+        openTime.setHours(openHour, openMinute, 0);
+        const closeTime = new Date();
+        closeTime.setHours(closeHour, closeMinute, 0);
 
-            // Handle cases where closing time is past midnight
-            if (closeTime < openTime) {
-                closeTime.setDate(closeTime.getDate() + 1);
-            }
+        // Handle cases where closing time is past midnight
+        if (closeTime < openTime) {
+            closeTime.setDate(closeTime.getDate() + 1);
+        }
 
-            if (currentDate >= openTime && currentDate <= closeTime) {
-                hoursStatus = `Open until ${convertTo12HourFormat(todayHours.close)}`;
-            } else {
-                // Find the next open day
-                let foundOpenDay = false;
+        if (currentDate >= openTime && currentDate <= closeTime) {
+            hoursStatus = `Open until ${convertTo12HourFormat(todayHours.close)}`;
+        } else {
+            // Find the next open day
+            let foundOpenDay = false;
+            
+            // Check up to 7 days ahead
+            for (let i = 0; i < 7; i++) {
+                const checkIndex = (days.indexOf(currentDay) + i) % 7;
+                const checkDay = days[checkIndex];
+                const dayHours = userData.operatingHours[checkDay];
                 
-                // Check up to 7 days ahead
-                for (let i = 0; i < 7; i++) {
-                    const checkIndex = (days.indexOf(currentDay) + i) % 7;
-                    const checkDay = days[checkIndex];
-                    const dayHours = userData.operatingHours[checkDay];
+                if (dayHours && dayHours.open) {
+                    const [nextOpenHour, nextOpenMinute] = dayHours.open.split(':').map(Number);
+                    const nextOpenTime = new Date();
+                    nextOpenTime.setHours(nextOpenHour, nextOpenMinute, 0);
                     
-                    if (dayHours && dayHours.open) {
-                        const [nextOpenHour, nextOpenMinute] = dayHours.open.split(':').map(Number);
-                        const nextOpenTime = new Date();
-                        nextOpenTime.setHours(nextOpenHour, nextOpenMinute, 0);
-                        
-                        if (i === 0) {
-                            // Today: only show if the opening time hasn't passed
-                            if (currentDate < nextOpenTime) {
-                                hoursStatus = `Closed until ${convertTo12HourFormat(dayHours.open)}`;
-                                foundOpenDay = true;
-                                break;
-                            }
-                        } else {
-                            // Future days
-                            nextOpenTime.setDate(nextOpenTime.getDate() + i);
-                            if (i === 1) {
-                                hoursStatus = `Closed until ${convertTo12HourFormat(dayHours.open)} tomorrow`;
-                            } else {
-                                const dayName = checkDay.charAt(0).toUpperCase() + checkDay.slice(1);
-                                hoursStatus = `Closed until ${convertTo12HourFormat(dayHours.open)} ${dayName}`;
-                            }
+                    if (i === 0) {
+                        // Today: only show if the opening time hasn't passed
+                        if (currentDate < nextOpenTime) {
+                            hoursStatus = `Closed until ${convertTo12HourFormat(dayHours.open)}`;
                             foundOpenDay = true;
                             break;
                         }
+                    } else {
+                        // Future days
+                        nextOpenTime.setDate(nextOpenTime.getDate() + i);
+                        if (i === 1) {
+                            hoursStatus = `Closed until ${convertTo12HourFormat(dayHours.open)} tomorrow`;
+                        } else {
+                            const dayName = checkDay.charAt(0).toUpperCase() + checkDay.slice(1);
+                            hoursStatus = `Closed until ${convertTo12HourFormat(dayHours.open)} ${dayName}`;
+                        }
+                        foundOpenDay = true;
+                        break;
                     }
                 }
-                
-                if (!foundOpenDay) {
-                    hoursStatus = 'Closed';
-                }
+            }
+            
+            if (!foundOpenDay) {
+                hoursStatus = 'Closed';
             }
         }
+    }
 
-        // Update hours status element
+        // Update both hours status elements
+        if (hoursHeaderEl) {
+            hoursHeaderEl.textContent = hoursStatus;
+        }
         if (hoursStatusEl) {
             hoursStatusEl.textContent = hoursStatus;
         }
@@ -442,7 +446,7 @@
                 <li>
                     <span class="match-item">${need.itemName || 'Unnamed Item'}</span>
                     ${need.quantity ? `<span class="match-quantity">(${need.quantity} needed)</span>` : ''}
-                    ${need.urgency ? `<span class="urgency-tag ${need.urgency}-urgency">${need.urgency} urgency</span>` : ''}
+                    ${need.urgency ? `<span class="urgency-tag ${need.urgency}-urgency">${need.urgency}</span>` : ''}
                 </li>
             `).join('');
         } else {

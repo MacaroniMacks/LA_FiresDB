@@ -708,3 +708,11 @@ input[type="number"]::placeholder {
     background: white;
     border-radius: 4px;
 }
+
+.highlight-match {
+    background-color: #c8e6c9; /* Light green background for matches */
+    border: 2px solid #388e3c; /* Darker green border */
+    font-weight: bold;
+    padding: 5px;
+    border-radius: 4px;
+}
