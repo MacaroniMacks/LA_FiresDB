@@ -616,3 +616,7 @@ body {
     margin-bottom: 0.5rem;
     color: #666;
 }
+
+.input-group {
+    height: 100%;
+}
