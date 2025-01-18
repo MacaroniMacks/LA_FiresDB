@@ -649,68 +649,81 @@ function viewCenter(centerId) {
        }
 
        function highlightMatchingItems(userData, centerData) {
-    if (!userData || !centerData) {
-        console.error('userData or centerData is null or undefined');
-        return;
-    }
+    // Ensure we're running after DOM is fully updated
+    setTimeout(() => {
+        console.log('Highlighting matching items');
+        console.log('userData:', userData);
+        console.log('centerData:', centerData);
 
-    // Log the userData and centerData
-    console.log('userData.needs:', userData.needs);
-    console.log('centerData.inventory:', centerData.inventory);
-    console.log('userData.canDonate:', userData.canDonate);
-    console.log('centerData.needs:', centerData.needs);
+        // Default to empty arrays if needed
+        const userNeeds = userData?.needs || [];
+        const userDonateItems = userData?.canDonate || [];
 
-    // Default to empty arrays if the properties don't exist or are null/undefined
-    const userNeeds = userData.needs || [];
-    const userDonateItems = userData.canDonate || [];
+        // Use multiple selectors to find items
+        const inventorySelectors = [
+            '.matches-section.matches-needs .match-item',
+            '.matches-needs .match-item',
+            '.center-card .match-item'
+        ];
 
-    // Get all the inventory items in the Center's Inventory section
-    const inventoryItems = document.querySelectorAll('.matches-section .match-item');
-    
-    if (!inventoryItems) {
-        console.error('No inventory items found');
-        return;
-    }
+        const needSelectors = [
+            '.matches-section.matches-donations .match-item',
+            '.matches-donations .match-item',
+            '.center-card .match-item'
+        ];
 
-    // For each item in the Center's Inventory, check if it matches a user’s need
-    inventoryItems.forEach(inventoryItem => {
-        const inventoryName = inventoryItem.textContent.trim().toLowerCase();
-
-        // Check if the center inventory item matches any of the user's needs
-        const match = userNeeds.some(userNeed => 
-            userNeed?.itemName?.toLowerCase() === inventoryName
-        );
-
-        if (match) {
-            inventoryItem.classList.add('highlight-match');
+        // Function to find first matching elements
+        function findElements(selectors) {
+            for (let selector of selectors) {
+                const elements = document.querySelectorAll(selector);
+                if (elements.length > 0) {
+                    console.log(`Found elements with selector: ${selector}`, elements);
+                    return elements;
+                }
+            }
+            console.log('No elements found with any selector');
+            return [];
         }
-    });
 
-    // Get all the need items in the Center's Needs section
-    const needItems = document.querySelectorAll('.matches-donations .match-item');
-    
-    if (!needItems) {
-        console.error('No need items found');
-        return;
-    }
+        const inventoryItems = findElements(inventorySelectors);
+        const needItems = findElements(needSelectors);
 
-    // For each item in the Center's Needs, check if it matches a user’s donateable item
-    needItems.forEach(needItem => {
-        const needName = needItem.textContent.trim().toLowerCase();
+        console.log('Inventory Items:', inventoryItems);
+        console.log('Need Items:', needItems);
 
-        // Check if the center need item matches any of the user's donateable items
-        const match = userDonateItems.some(userItem =>
-            userItem?.itemName?.toLowerCase() === needName
-        );
+        // Highlight inventory items that match user needs
+        inventoryItems.forEach(inventoryItem => {
+            const inventoryName = inventoryItem.textContent.trim().toLowerCase();
+            
+            const match = userNeeds.some(userNeed => {
+                const needName = userNeed?.itemName?.toLowerCase() || '';
+                return needName === inventoryName;
+            });
 
-        if (match) {
-            needItem.classList.add('highlight-match');
-        }
-    });
+            console.log(`Inventory item ${inventoryName} match:`, match);
+
+            if (match) {
+                inventoryItem.classList.add('highlight-match');
+            }
+        });
+
+        // Highlight need items that match user donations
+        needItems.forEach(needItem => {
+            const needName = needItem.textContent.trim().toLowerCase();
+            
+            const match = userDonateItems.some(userItem => {
+                const donationName = userItem?.itemName?.toLowerCase() || '';
+                return donationName === needName;
+            });
+
+            console.log(`Need item ${needName} match:`, match);
+
+            if (match) {
+                needItem.classList.add('highlight-match');
+            }
+        });
+    }, 100); // Short delay to ensure DOM is updated
 }
-
-
-
        function closePopup() {
            const popup = document.querySelector('.popup');
            if (popup) {

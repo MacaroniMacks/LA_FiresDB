@@ -87,16 +87,9 @@ def home():
 def login():
     return render_template('login.html')
 
-@app.route('/signup', methods=['POST'])
+@app.route('/signup')
 def signup():
-    try:
-        data = request.json
-        app.logger.info(f"Received signup data: {data}")
-        # Your signup logic here
-        # ...
-    except Exception as e:
-        app.logger.error(f"Signup error: {str(e)}")
-        return jsonify({"error": str(e)}), 400
+    return render_template('signup.html')
 
 @app.route('/setup-location')
 @login_required

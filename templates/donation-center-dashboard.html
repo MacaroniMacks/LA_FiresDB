@@ -446,7 +446,7 @@
                 <li>
                     <span class="match-item">${need.itemName || 'Unnamed Item'}</span>
                     ${need.quantity ? `<span class="match-quantity">(${need.quantity} needed)</span>` : ''}
-                    ${need.urgency ? `<span class="urgency-tag ${need.urgency}-urgency">${need.urgency}</span>` : ''}
+                    ${need.urgency ? `<span class="urgency-tag ${need.urgency}-urgency">${need.urgency} urgency</span>` : ''}
                 </li>
             `).join('');
         } else {
