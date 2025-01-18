@@ -1,11 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, session
 from functools import wraps
+from flask_cors import CORS
 import firebase_admin
 from firebase_admin import credentials, auth, firestore, initialize_app
-import json
-from firebase_admin import auth
 
 app = Flask(__name__)
+CORS(app)  # This enables CORS for all routes
+
+# Rest of your existing code remains the same
 
 def validate_token(auth_token):
     """
