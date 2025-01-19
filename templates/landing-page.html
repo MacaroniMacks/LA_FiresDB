@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LA Fire Community Coordination</title>
+    <link rel="stylesheet" href="static/css/landingStyles.css">
+</head>
+<body>
+    <div class="page-container">
+        <!-- Join Button -->
+        <nav class="top-nav">
+            <a href="/signup" class="join-button">Join Now</a>
+        </nav>
+
+        <div class="main-content">
+            <!-- Left Panel -->
+            <div class="left-panel">
+                <div class="content-wrapper">
+                    <div class="header-section">
+                        <div class="emergency-badge">
+                            <span class="pulse-dot"></span>
+                            Wildfire Relief in Progress
+                        </div>
+                        <h1>LA Fire Community Relief</h1>
+                        <p class="lead-text">
+                          "Look for the helpers. You will always find people who are helping." - Mr. Rogers
+                        </p>
+                    </div>
+
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <div class="icon-wrapper red">
+                                <svg viewBox="0 0 24 24" class="icon">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                            </div>
+                            <div class="feature-content">
+                                <h3>Urgent Needs</h3>
+                                <p>Stay informed about the most pressing community requests</p>
+                            </div>
+                        </div>
+
+                        <div class="feature-card">
+                            <div class="icon-wrapper blue">
+                                <svg viewBox="0 0 24 24" class="icon">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                            </div>
+                            <div class="feature-content">
+                                <h3>Connect Locally</h3>
+                                <p>Find and collaborate with nearby neighbors and donation centers</p>
+                            </div>
+                        </div>
+
+                        <div class="feature-card">
+                            <div class="icon-wrapper green">
+                                <svg viewBox="0 0 24 24" class="icon">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div class="feature-content">
+                                <h3>Trusted Support</h3>
+                                <p>Access verified donation centers and reliable resources</p>
+                            </div>
+                        </div>
+
+                        <div class="areas-badge">
+                            <strong>Area We're Supporting:</strong> The Los Angeles Metropolitan Area
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="right-panel">
+                <div class="login-container">
+                    <div class="login-header">
+                        <h2>Join the Community</h2>
+                        <p>Log in to offer help or find support</p>
+                    </div>
+
+                    <form id="loginForm" class="login-form">
+                      <div class="form-group">
+                          <label for="email">Email</label>
+                          <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                      </div>
+                      <div class="form-group">
+                          <label for="password">Password</label>
+                          <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                      </div>
+                      <button type="submit" class="login-button">Sign in</button>
+                  </form>
+                    </form>
+
+                    <p class="signup-link">
+                        New here? <a href="/signup">Create an account and join your neighbors</a>
+                    </p>
+
+                    <div class="emergency-notice">
+                        <p>Need immediate emergency help? <a href="tel:911">Call 911</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+        <!-- Firebase SDK -->
+        <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+        <!-- Firebase Config -->
+        <script src="{{ url_for('static', filename='js/config.js') }}"></script>
+    
+        <!-- Auth Functions -->
+        <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    
+        <script>
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+    
+                try {
+                    await login(email, password);
+                } catch (error) {
+                    // Additional error handling if needed
+                    console.error('Login submission error:', error);
+                }
+            });
+        </script>
+</body>
+</html>

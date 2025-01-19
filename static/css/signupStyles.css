@@ -10,17 +10,19 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f5f5f5;
+    background: linear-gradient(135deg, #fff7ed 0%, #eff6ff 100%);
 }
 
 .signup-container {
-    background: white;
+    background: rgba(255, 255, 255, 0.9);
     padding: 3rem;
     border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(8px);
     width: 100%;
     max-width: 440px;
     margin: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .signup-header {
@@ -29,35 +31,39 @@ body {
 }
 
 .signup-header h1 {
-    color: #333;
-    font-size: 1.875rem;
-    font-weight: 600;
+    color: #111827;
+    font-size: 2rem;
+    font-weight: 700;
     margin-bottom: 0.75rem;
 }
 
 .signup-header p {
-    color: #666;
-    font-size: 0.975rem;
+    color: #4b5563;
+    font-size: 1rem;
 }
 
 .toggle-container {
     display: flex;
     justify-content: center;
     margin-bottom: 2.5rem;
+    padding: 8px;
+    background: #f3f4f6;
+    border-radius: 12px;
 }
 
 .toggle-wrapper {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    color: #666;
+    gap: 1.5rem;
+    color: #4b5563;
+    font-weight: 500;
 }
 
 /* Custom toggle switch */
 .toggle-switch {
     position: relative;
     display: inline-block;
-    width: 50px;
+    width: 52px;
     height: 28px;
 }
 
@@ -74,7 +80,7 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #ccc;
+    background-color: #e5e7eb;
     transition: .3s;
     border-radius: 28px;
 }
@@ -89,14 +95,15 @@ body {
     background-color: white;
     transition: .3s;
     border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 input:checked + .toggle-slider {
-    background-color: #333;
+    background-color: #dc2626;
 }
 
 input:checked + .toggle-slider:before {
-    transform: translateX(22px);
+    transform: translateX(24px);
 }
 
 .form-group {
@@ -106,7 +113,7 @@ input:checked + .toggle-slider:before {
 .form-group label {
     display: block;
     margin-bottom: 0.5rem;
-    color: #444;
+    color: #374151;
     font-size: 0.875rem;
     font-weight: 500;
 }
@@ -114,78 +121,87 @@ input:checked + .toggle-slider:before {
 .form-group input {
     width: 100%;
     padding: 0.875rem 1rem;
-    border: 1px solid #ddd;
-    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
     font-size: 1rem;
     transition: all 0.2s;
+    background-color: #f9fafb;
 }
 
 .form-group input:focus {
     outline: none;
-    border-color: #666;
-    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
-}
-
-.form-group select {
-    width: 100%;
-    padding: 0.875rem 1rem;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 1rem;
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
     background-color: white;
-    cursor: pointer;
-    transition: all 0.2s;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    padding-right: 2.5rem;
 }
 
-.form-group select:focus {
-    outline: none;
-    border-color: #666;
-    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+.form-group input::placeholder {
+    color: #9ca3af;
 }
 
 .signup-button {
     width: 100%;
-    padding: 0.875rem;
-    background: #333;
+    padding: 1rem;
+    background: #dc2626;
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 1rem;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
     margin-top: 1rem;
 }
 
 .signup-button:hover {
-    background: #444;
+    background: #b91c1c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(220, 38, 38, 0.1);
+}
+
+.signup-button:active {
+    transform: translateY(0);
 }
 
 .login-link {
     text-align: center;
     margin-top: 1.75rem;
-    color: #666;
+    color: #4b5563;
     font-size: 0.875rem;
 }
 
 .login-link a {
-    color: #333;
+    color: #dc2626;
     text-decoration: none;
     font-weight: 500;
+    transition: color 0.2s;
 }
 
 .login-link a:hover {
+    color: #b91c1c;
     text-decoration: underline;
 }
 
+/* Animation for container */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.signup-container {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Responsive adjustments */
 @media (max-width: 480px) {
     .signup-container {
         padding: 2rem;
-        margin: 0.5rem;
+        margin: 1rem;
+        border-radius: 8px;
+    }
+    
+    .toggle-wrapper {
+        gap: 1rem;
+        font-size: 0.875rem;
     }
 }

@@ -81,7 +81,11 @@ def login_required(view_function):
 
 @app.route('/')
 def home():
-    return render_template('login.html')
+    return render_template('landing-page.html')
+
+@app.route('/landing-page')
+def landing_page():
+    return render_template('landing-page.html')
 
 @app.route('/login')
 def login():
