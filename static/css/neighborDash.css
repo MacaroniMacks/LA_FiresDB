@@ -590,6 +590,9 @@ input[type="number"]::placeholder {
     border-radius: 4px;
     color: #666;
     text-decoration: underline;
+    justify-content: flex-end;
+    width: fit-content;
+    margin-left: auto;  /* This pushes it to the right */
 }
 
 .center-hours .hours-popup {
