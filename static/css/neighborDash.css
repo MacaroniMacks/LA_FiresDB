@@ -415,7 +415,6 @@ input[type="number"]::placeholder {
 .distance {
     color: #6e7072;
     font-size: 0.9rem;
-    margin-bottom: 0.5rem;
 }
 
 .needs-list {
@@ -507,7 +506,7 @@ input[type="number"]::placeholder {
 }
 
 .matches-donations {
-    background-color: #f6ffed;  /* Light green background */
+    background-color: #ffeded;  /* Light red background */
 }
 
 .matches-section h4 {
@@ -710,9 +709,52 @@ input[type="number"]::placeholder {
 }
 
 .highlight-match {
-    background-color: #fef680;
+    background-color: #ffe66a;
     border: 2px solid #f6ff00; 
     font-weight: bold;
     padding: 5px;
     border-radius: 4px;
+}
+
+.location-info {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.25rem;
+    color: #666;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.address-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.location-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 0.25rem;
+    flex-shrink: 0;
+    color: #666;
+}
+
+.dot-separator {
+    width: 4px;
+    height: 4px;
+    background-color: #666;
+    border-radius: 50%;
+    margin: 0 0.5rem;
+}
+
+@media (max-width: 640px) {
+    .location-info {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.5rem;
+    }
+    
+    .dot-separator {
+        display: none;
+    }
 }

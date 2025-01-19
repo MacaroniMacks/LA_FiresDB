@@ -306,7 +306,7 @@ body {
 }
 
 .matches-donations {
-    background-color: #f6ffed;  /* Light green background */
+    background-color: #ffeded;  /* Light red background */
 }
 
 .matches-section h4 {
@@ -619,4 +619,52 @@ body {
 
 .input-group {
     height: 100%;
+}
+
+.center-location {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.location-info {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.25rem;
+    color: #666;
+    font-size: 0.875rem;
+}
+
+.address-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.location-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 0.25rem;
+    flex-shrink: 0;
+}
+
+.dot-separator {
+    width: 4px;
+    height: 4px;
+    background-color: #666;
+    border-radius: 50%;
+    margin: 0 0.5rem;
+}
+
+@media (max-width: 640px) {
+    .location-info {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.5rem;
+    }
+    
+    .dot-separator {
+        display: none;
+    }
 }

@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Donation Center Dashboard</title>
     <link rel="stylesheet" href="/static/css/donationcenterDash.css">
-    <link rel="stylesheet" href="/static/css/item-dropdown-styles.css">
-    <script src="/static/js/item-searchable-dropdown.js"></script>
 </head>
 <body>
     <nav class="navbar">
@@ -34,10 +32,12 @@
                     <option value="999">Any distance</option>
                 </select>
 
-                <div class="input-group">
-                    <label for="itemName_0"></label>
-                    <input type="text" id="itemName_0" required>
-                </div>
+                <select id="itemFilter" onchange="updateAnalytics(centerLocation)">
+                    <option value="food">Food</option>
+                    <option value="clothing">Clothing</option>
+                    <option value="hygiene">Hygiene Products</option>
+                    <option value="supplies">General Supplies</option>
+                </select>
             </div>
 
             <div class="analytics-grid">
@@ -92,8 +92,19 @@
                             <p id="previewEmail" class="contact-detail"></p>
                         </div>
                         <div class="center-location">
-                            <p id="previewAddress"></p>
-                            <p class="distance" id="previewDistance">0 miles away</p>
+                            <div class="location-info">
+                                <div class="address-wrapper">
+                                    <svg class="location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    <span id="previewAddress"></span>
+                                </div>
+                                <span class="dot-separator"></span>
+                                <span id="previewDistance">0 miles away</span>
+                            </div>
                             <div class="center-hours" id="hoursOfOperation">
                                 <h4 id="hoursStatus"></h4>
                                 <div class="hours-popup">
@@ -298,29 +309,61 @@
     }
 
     // Update address
-    const addressEl = document.getElementById('previewAddress');
-    if (addressEl && userData.addressInfo) {
+    // Update address and location elements
+const addressEl = document.getElementById('previewAddress');
+const addressWrapper = document.querySelector('.address-wrapper');
+const dotSeparator = document.querySelector('.dot-separator');
+const distanceEl = document.getElementById('previewDistance');
+const locationIcon = document.querySelector('.location-icon');
+
+// Check if we have valid address info
+const hasValidAddress = userData.addressInfo && 
+    userData.addressInfo.street && 
+    userData.addressInfo.city && 
+    userData.addressInfo.zipCode;
+
+// Handle address elements visibility
+if (hasValidAddress) {
+    // Show address-related elements
+    if (addressWrapper) addressWrapper.style.display = 'flex';
+    if (locationIcon) locationIcon.style.display = 'block';
+    if (dotSeparator) dotSeparator.style.display = 'block';
+    
+    // Update address text
+    if (addressEl) {
         let address = [
             userData.addressInfo.street,
             userData.addressInfo.unit ? `Unit ${userData.addressInfo.unit}` : null,
             userData.addressInfo.city,
             userData.addressInfo.zipCode
         ].filter(Boolean).join(', ');
-        addressEl.textContent = address || 'Address not provided';
+        addressEl.textContent = address;
     }
+} else {
+    // Hide address-related elements
+    if (addressWrapper) addressWrapper.style.display = 'none';
+    if (locationIcon) locationIcon.style.display = 'none';
+    if (dotSeparator) dotSeparator.style.display = 'none';
+    
+    if (addressEl) {
+        addressEl.textContent = '';
+    }
+}
 
-    // Update distance
-    const distanceEl = document.getElementById('previewDistance');
-    if (distanceEl) {
-        distanceEl.textContent = '0 miles away';
-    }
+// Always show distance if we have coordinates
+if (distanceEl && userData.location) {
+    distanceEl.style.display = 'inline';
+    distanceEl.textContent = '0 miles away';
+} else if (distanceEl) {
+    distanceEl.style.display = 'none';
+}
 
     // Update phone and email
     const phoneEl = document.getElementById('previewPhone');
     const emailEl = document.getElementById('previewEmail');
     if (phoneEl && emailEl && userData.contactInfo) {
-        phoneEl.textContent = userData.contactInfo.phone || 'No phone number provided';
-        emailEl.textContent = userData.contactInfo.email || 'No email provided';
+        phoneEl.textContent = userData.contactInfo.phone || '';
+        emailEl.textContent = userData.contactInfo.email || '';
     }
 
     // Update hours
@@ -516,266 +559,161 @@ function switchTab(tabName) {
             document.getElementById(tabName).style.display = 'block';
         }
 
-// Helper functions remain the same
-function itemsMatch(searchItem, targetItem) {
-    // If either item is null/undefined, no match
-    if (!searchItem || !targetItem) return false;
-    
-    // Convert both to lowercase and trim
-    searchItem = searchItem.toLowerCase().trim();
-    targetItem = targetItem.toLowerCase().trim();
-    
-    // If search is empty, it matches nothing
-    if (searchItem === '') return false;
-    
-    console.log(`Comparing items - Search: "${searchItem}", Target: "${targetItem}"`);
-    
-    // Only do exact matches
-    const isMatch = searchItem === targetItem;
-    if (isMatch) {
-        console.log('Exact match found');
-    } else {
-        console.log('No match found');
-    }
-    return isMatch;
-}
-
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-// Add location initialization function
-async function initializeCenterLocation(user) {
-    try {
-        console.log('Initializing center location for user:', user.uid);
-        const userDoc = await firebase.firestore()
-            .collection('users')
-            .doc(user.uid)
-            .get();
-        
-        const userData = userDoc.data();
-        
-        if (!userData) {
-            console.error('No user data found');
-            return null;
-        }
-
-        if (!userData.isDonationCenter) {
-            console.log('User is not a donation center');
-            window.location.href = '/neighbor-dashboard';
-            return null;
-        }
-
-        if (!userData.location || 
-            typeof userData.location.latitude !== 'number' || 
-            typeof userData.location.longitude !== 'number') {
-            console.error('Invalid location data');
-            window.location.href = '/setup-location';
-            return null;
-        }
-
-        const location = {
-            latitude: Number(userData.location.latitude),
-            longitude: Number(userData.location.longitude)
-        };
-
-        console.log('Center location initialized:', location);
-        return location;
-    } catch (error) {
-        console.error('Error initializing center location:', error);
-        return null;
-    }
-}
-
-// Update analytics function
-async function updateAnalytics(centerLocation) {
-    console.log('Update Analytics Called');
-    console.log('Center Location:', centerLocation);
-
-    if (!centerLocation || !centerLocation.latitude || !centerLocation.longitude) {
-        console.error('Invalid center location');
-        return;
-    }
-
-    const radius = parseFloat(document.getElementById('radiusFilter').value);
-    const itemFilterInput = document.getElementById('itemName_0');
-    
-    if (!itemFilterInput) {
-        console.error('Item filter input not found');
-        return;
-    }
-
-    const searchItem = itemFilterInput.value;
-    console.log('Filtering for item:', searchItem);
-
-    try {
-        const db = firebase.firestore();
-        const neighborsSnapshot = await db.collection('users')
-            .where('isDonationCenter', '==', false)
-            .get();
-
-        console.log('Found neighbors:', neighborsSnapshot.size);
-
-        let needsCount = { high: 0, medium: 0, low: 0 };
-        let donorsCount = 0;
-        let totalItemsAvailable = 0;
-
-        neighborsSnapshot.forEach(doc => {
-            const neighborData = doc.data();
-
-            if (!neighborData.location?.latitude || !neighborData.location?.longitude) {
-                console.log('Skipping neighbor with invalid location:', doc.id);
+        async function updateAnalytics(centerLocation) {
+            if (!centerLocation || !centerLocation.latitude || !centerLocation.longitude) {
+                console.log('Location not yet initialized');
                 return;
             }
 
-            const distance = calculateDistance(
-                centerLocation.latitude,
-                centerLocation.longitude,
-                neighborData.location.latitude,
-                neighborData.location.longitude
-            );
+            const radius = parseFloat(document.getElementById('radiusFilter').value);
+            const itemCategory = document.getElementById('itemFilter').value.toLowerCase();
+            
+            try {
+                // Get all neighbors within radius
+                const neighborsSnapshot = await firebase.firestore()
+                    .collection('users')
+                    .where('isDonationCenter', '==', false)
+                    .get();
 
-            console.log(`Distance for neighbor ${doc.id}:`, distance);
+                let needsCount = { high: 0, medium: 0, low: 0 };
+                let donorsCount = 0;
+                let totalItemsAvailable = 0;
 
-            if (distance <= radius || radius === 999) {
-                // Process needs
-                if (Array.isArray(neighborData.needs)) {
-                    neighborData.needs.forEach(need => {
-                        if (!need.itemName) return;
-                        
-                        console.log(`Checking need item: "${need.itemName}" against search: "${searchItem}"`);
-                        if (itemsMatch(searchItem, need.itemName)) {
-                            console.log(`Match found for need: ${need.itemName}`);
-                            const urgency = need.urgency?.toLowerCase() || 'low';
-                            if (needsCount.hasOwnProperty(urgency)) {
-                                needsCount[urgency]++;
-                            }
+                // Debug logging
+                console.log('Center Location:', centerLocation);
+                console.log('Selected radius:', radius);
+                console.log('Selected category:', itemCategory);
+
+                neighborsSnapshot.forEach(doc => {
+                    const neighborData = doc.data();
+                    
+                    if (!neighborData.location) {
+                        console.log('Neighbor has no location:', doc.id);
+                        return;
+                    }
+
+                    const distance = calculateDistance(
+                        centerLocation.latitude,
+                        centerLocation.longitude,
+                        neighborData.location.latitude,
+                        neighborData.location.longitude
+                    );
+
+                    if (distance <= radius || radius === 999) {
+                        // Count needs by urgency
+                        if (neighborData.needs) {
+                            neighborData.needs.forEach(need => {
+                                const itemNameLower = need.itemName?.toLowerCase() || '';
+                                if (itemNameLower.includes(itemCategory)) {
+                                    needsCount[need.urgency || 'low']++;
+                                }
+                            });
                         }
-                    });
+
+                        // Count available donations
+                        if (neighborData.canDonate) {
+                            let hasDonatable = false;
+                            neighborData.canDonate.forEach(item => {
+                                const itemNameLower = item.itemName?.toLowerCase() || '';
+                                if (itemNameLower.includes(itemCategory)) {
+                                    hasDonatable = true;
+                                    totalItemsAvailable += item.quantity || 1;
+                                }
+                            });
+                            if (hasDonatable) donorsCount++;
+                        }
+                    }
+                });
+
+                // Calculate total needs and update urgency bar
+                const totalNeeds = needsCount.high + needsCount.medium + needsCount.low;
+                const urgencyBar = document.querySelector('.urgency-bar');
+
+                if (totalNeeds === 0) {
+                    urgencyBar.classList.add('empty');
+                    document.getElementById('highUrgency').style.width = '0%';
+                    document.getElementById('mediumUrgency').style.width = '0%';
+                    document.getElementById('lowUrgency').style.width = '0%';
+                } else {
+                    urgencyBar.classList.remove('empty');
+                    document.getElementById('highUrgency').style.width = 
+                        `${(needsCount.high / totalNeeds * 100) || 0}%`;
+                    document.getElementById('mediumUrgency').style.width = 
+                        `${(needsCount.medium / totalNeeds * 100) || 0}%`;
+                    document.getElementById('lowUrgency').style.width = 
+                        `${(needsCount.low / totalNeeds * 100) || 0}%`;
                 }
 
-                // Process donations
-                if (Array.isArray(neighborData.canDonate)) {
-                    let hasDonatable = false;
-                    neighborData.canDonate.forEach(item => {
-                        if (!item.itemName) return;
-                        
-                        console.log(`Checking donation item: "${item.itemName}" against search: "${searchItem}"`);
-                        if (itemsMatch(searchItem, item.itemName)) {
-                            console.log(`Match found for donation: ${item.itemName}`);
-                            hasDonatable = true;
-                            totalItemsAvailable += parseInt(item.quantity) || 1;
-                        }
-                    });
-                    if (hasDonatable) donorsCount++;
-                }
+                document.getElementById('totalNeeding').textContent = totalNeeds.toString();
+                document.getElementById('totalDonors').textContent = donorsCount.toString();
+                document.getElementById('totalItems').textContent = totalItemsAvailable.toString();
+
+            } catch (error) {
+                console.error('Error updating analytics:', error);
             }
-        });
+        }
 
-        console.log('Final counts:', {
-            needs: needsCount,
-            donors: donorsCount,
-            totalItems: totalItemsAvailable
-        });
+        document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
 
-        // Update UI
-        const totalNeeds = needsCount.high + needsCount.medium + needsCount.low;
-        const urgencyBar = document.querySelector('.urgency-bar');
-
-        if (!urgencyBar) {
-            console.error('Urgency bar element not found');
+        if (!token) {
+            console.log('No token found');
+            window.location.href = '/login';
             return;
         }
 
-        if (totalNeeds === 0) {
-            urgencyBar.classList.add('empty');
-            ['high', 'medium', 'low'].forEach(level => {
-                const element = document.getElementById(`${level}Urgency`);
-                if (element) element.style.width = '0%';
-            });
-        } else {
-            urgencyBar.classList.remove('empty');
-            ['high', 'medium', 'low'].forEach(level => {
-                const element = document.getElementById(`${level}Urgency`);
-                if (element) {
-                    const percentage = (needsCount[level] / totalNeeds * 100) || 0;
-                    element.style.width = `${percentage}%`;
-                }
-            });
-        }
-
-        // Update statistics
-        const elements = {
-            totalNeeding: document.getElementById('totalNeeding'),
-            totalDonors: document.getElementById('totalDonors'),
-            totalItems: document.getElementById('totalItems')
-        };
-
-        if (elements.totalNeeding) elements.totalNeeding.textContent = totalNeeds.toString();
-        if (elements.totalDonors) elements.totalDonors.textContent = donorsCount.toString();
-        if (elements.totalItems) elements.totalItems.textContent = totalItemsAvailable.toString();
-
-    } catch (error) {
-        console.error('Error in updateAnalytics:', error);
-    }
-}
-
-document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        console.log('DOM Content Loaded');
-        const itemFilterInput = document.getElementById('itemName_0');
-        console.log('Item Filter Input on Load:', itemFilterInput);
-
-        const searchableDropdown = new SearchableDropdown(itemFilterInput);
-        const debouncedUpdate = debounce((location) => updateAnalytics(location), 300);
-
-        // Wait for Firebase Auth to initialize
         firebase.auth().onAuthStateChanged(async (user) => {
-            if (!user) {
-                console.log('No user found, redirecting to login');
-                window.location.href = '/login';
-                return;
-            }
+            if (user) {
+                try {
+                    const userDoc = await firebase.firestore()
+                        .collection('users')
+                        .doc(user.uid)
+                        .get();
+                    
+                    const userData = userDoc.data();
+                    document.getElementById('userEmail').textContent = user.email;
 
-            console.log('User authenticated:', user.uid);
-            
-            // Initialize center location
-            window.centerLocation = await initializeCenterLocation(user);
-            
-            if (!window.centerLocation) {
-                console.error('Failed to initialize center location');
-                return;
-            }
-
-            // Initial analytics update
-            await updateAnalytics(window.centerLocation);
-
-            // Set up event listeners
-            ['change', 'input'].forEach(eventType => {
-                itemFilterInput.addEventListener(eventType, () => {
-                    console.log(`${eventType} Event Triggered`);
-                    console.log('Current Value:', itemFilterInput.value);
-                    if (window.centerLocation) {
-                        debouncedUpdate(window.centerLocation);
-                    } else {
-                        console.error('No center location available');
+                    if (!userData.isDonationCenter) {
+                        window.location.href = '/neighbor-dashboard';
+                        return;
                     }
-                });
-            });
 
+                    // Robust location validation
+                    if (!userData.location || 
+                        typeof userData.location.latitude !== 'number' || 
+                        typeof userData.location.longitude !== 'number') {
+                        console.error('Invalid location data');
+                        window.location.href = '/setup-location';
+                        return;
+                    }
+
+                    // Set centerLocation with explicit type checking
+                    centerLocation = {
+                        latitude: Number(userData.location.latitude),
+                        longitude: Number(userData.location.longitude)
+                    };
+
+                    // Update center card preview and load center information
+                    updateCenterCardPreview(userData);
+                    loadCenterInformation(userData);  // Moved inside here
+
+                    // Call updateAnalytics immediately after setting location
+                    await updateAnalytics(centerLocation);
+
+                } catch (error) {
+                    console.error('Error initializing user data:', error);
+                    window.location.href = '/login';
+                }
+            } else {
+                window.location.href = '/login';
+            }
         });
 
     } catch (error) {
-        console.error('Error in analytics setup:', error);
+        console.error('Dashboard initialization error:', error);
+        window.location.href = '/login';
     }
 });
 

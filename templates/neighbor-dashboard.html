@@ -144,64 +144,76 @@ async function updateDonationCenters(userData) {
                 centerCard.className = 'center-card';
                 
                 centerCard.innerHTML = `
-                    <div class="center-header">
-                        <div class="center-main-info">
-                            <h3>${centerData.centerName || 'Unnamed Center'}</h3>
-                            ${centerData.contactInfo?.phone ? 
-                                `<p class="contact-detail">${centerData.contactInfo.phone}</p>` : ''}
-                            ${centerData.contactInfo?.email ? 
-                                `<p class="contact-detail">${centerData.contactInfo.email}</p>` : ''}
-                        </div>
-                        <div class="center-location">
-                            ${centerData.addressInfo ? `
-                                <p>${[
-                                    centerData.addressInfo.street,
-                                    centerData.addressInfo.unit ? `Unit ${centerData.addressInfo.unit}` : null,
-                                    centerData.addressInfo.city,
-                                    centerData.addressInfo.zipCode
-                                ].filter(Boolean).join(', ')}</p>` : ''}
-                            <p class="distance">${distance.toFixed(1)} miles away</p>
-                            ${generateHoursHTML(centerData.operatingHours, doc.id)}
-                        </div>
+    <div class="center-header">
+        <div class="center-main-info">
+            <h3>${centerData.centerName || 'Unnamed Center'}</h3>
+            ${centerData.contactInfo?.phone ? 
+                `<p class="contact-detail">${centerData.contactInfo.phone}</p>` : ''}
+            ${centerData.contactInfo?.email ? 
+                `<p class="contact-detail">${centerData.contactInfo.email}</p>` : ''}
+        </div>
+        <div class="center-location">
+            <div class="location-info">
+                ${centerData.addressInfo ? `
+                    <div class="address-wrapper">
+                        <svg class="location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span>${[
+                            centerData.addressInfo.street,
+                            centerData.addressInfo.unit ? `Unit ${centerData.addressInfo.unit}` : null,
+                            centerData.addressInfo.city,
+                            centerData.addressInfo.zipCode
+                        ].filter(Boolean).join(', ')}</span>
                     </div>
+                    <span class="dot-separator"></span>
+                ` : ''}
+                <span class="distance">${distance.toFixed(1)} miles away</span>
+            </div>
+            ${generateHoursHTML(centerData.operatingHours, doc.id)}
+        </div>
+    </div>
 
-                    ${centerData.centerNotes ? `
-                        <div class="additional-info">
-                            <h4>Additional Information</h4>
-                            <p>${centerData.centerNotes}</p>
-                        </div>
-                    ` : ''}
+    ${centerData.centerNotes ? `
+        <div class="additional-info">
+            <h4>Additional Information</h4>
+            <p>${centerData.centerNotes}</p>
+        </div>
+    ` : ''}
 
-                    <div class="matches-container">
-                        <div class="matches-section matches-needs">
-                            <h4>Center's Inventory</h4>
-                            <ul>
-                                ${centerData?.inventory?.length > 0 ? 
-                                    centerData.inventory.map(item => `
-                                        <li>
-                                            <span class="match-item">${item.itemName || 'Unnamed Item'}</span>
-                                            ${item.quantity ? `<span class="match-quantity">(${item.quantity} available)</span>` : ''}
-                                        </li>
-                                    `).join('') : '<li class="no-matches">Center currently hasn\'t set up inventory</li>'
-                                }
-                            </ul>
-                        </div>
-                        <div class="matches-section matches-donations">
-                            <h4>Center's Needs</h4>
-                            <ul>
-                                ${centerData?.needs?.length > 0 ? 
-                                    centerData.needs.map(need => `
-                                        <li>
-                                            <span class="match-item">${need.itemName}</span>
-                                            ${need.quantity ? `<span class="match-quantity">(${need.quantity} needed)</span>` : ''}
-                                            ${need.urgency ? `<span class="urgency-tag ${need.urgency}-urgency">${need.urgency} urgency</span>` : ''}
-                                        </li>
-                                    `).join('') : '<li class="no-matches">Center currently hasn\'t set up needs</li>'
-                                }
-                            </ul>
-                        </div>
-                    </div>
-                `;
+    <div class="matches-container">
+        <div class="matches-section matches-needs">
+            <h4>Center's Inventory</h4>
+            <ul>
+                ${centerData?.inventory?.length > 0 ? 
+                    centerData.inventory.map(item => `
+                        <li>
+                            <span class="match-item">${item.itemName || 'Unnamed Item'}</span>
+                            ${item.quantity ? `<span class="match-quantity">(${item.quantity} available)</span>` : ''}
+                        </li>
+                    `).join('') : '<li class="no-matches">Center currently hasn\'t set up inventory</li>'
+                }
+            </ul>
+        </div>
+        <div class="matches-section matches-donations">
+            <h4>Center's Needs</h4>
+            <ul>
+                ${centerData?.needs?.length > 0 ? 
+                    centerData.needs.map(need => `
+                        <li>
+                            <span class="match-item">${need.itemName}</span>
+                            ${need.quantity ? `<span class="match-quantity">(${need.quantity} needed)</span>` : ''}
+                            ${need.urgency ? `<span class="urgency-tag ${need.urgency}-urgency">${need.urgency} urgency</span>` : ''}
+                        </li>
+                    `).join('') : '<li class="no-matches">Center currently hasn\'t set up needs</li>'
+                }
+            </ul>
+        </div>
+    </div>
+`;
                 highlightMatchingItems(userData, centerData);
                 
                 centersList.appendChild(centerCard);
