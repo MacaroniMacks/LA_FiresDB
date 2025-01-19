@@ -78,9 +78,11 @@ function generateHoursHTML(hours, centerId) {
     if (!hours) return '';
     
     const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-
-     // Check if any days have hours set
-     const hasAnyHours = days.some(day => {
+    const currentDay = days[new Date().getDay()];
+    const currentDate = new Date();
+    
+    // Check if any days have hours set
+    const hasAnyHours = days.some(day => {
         const dayHours = hours[day];
         return dayHours && dayHours.open && dayHours.close;
     });
@@ -90,12 +92,63 @@ function generateHoursHTML(hours, centerId) {
         return '';
     }
 
-    const currentDay = days[new Date().getDay()];
     const todayHours = hours[currentDay];
     let statusText = 'Closed';
+
+    if (todayHours && todayHours.open && todayHours.close) {
+        const [openHour, openMinute] = todayHours.open.split(':').map(Number);
+        const [closeHour, closeMinute] = todayHours.close.split(':').map(Number);
+        const openTime = new Date();
+        openTime.setHours(openHour, openMinute, 0);
+        const closeTime = new Date();
+        closeTime.setHours(closeHour, closeMinute, 0);
+
+        // Handle cases where closing time is past midnight
+        if (closeTime < openTime) {
+            closeTime.setDate(closeTime.getDate() + 1);
+        }
+
+        if (currentDate >= openTime && currentDate <= closeTime) {
+            statusText = `Open until ${convertTo12HourFormat(todayHours.close)}`;
+        }
+    }
     
-    if (todayHours?.open && todayHours?.close) {
-        statusText = `Open ${convertTo12HourFormat(todayHours.open)} - ${convertTo12HourFormat(todayHours.close)}`;
+    // If not currently open, always check future days for next opening
+    if (statusText === 'Closed') {
+        // Find the next open day
+        let foundOpenDay = false;
+        
+        // Check today (if there are hours) and up to 7 days ahead
+        for (let i = 0; i < 7; i++) {
+            const checkIndex = (days.indexOf(currentDay) + i) % 7;
+            const checkDay = days[checkIndex];
+            const dayHours = hours[checkDay];
+            
+            if (dayHours && dayHours.open) {
+                const [nextOpenHour, nextOpenMinute] = dayHours.open.split(':').map(Number);
+                const nextOpenTime = new Date();
+                nextOpenTime.setHours(nextOpenHour, nextOpenMinute, 0);
+                
+                if (i === 0) {
+                    // Today: only show if the opening time hasn't passed
+                    if (currentDate < nextOpenTime) {
+                        statusText = `Closed until ${convertTo12HourFormat(dayHours.open)}`;
+                        foundOpenDay = true;
+                        break;
+                    }
+                } else {
+                    // Future days
+                    if (i === 1) {
+                        statusText = `Closed until ${convertTo12HourFormat(dayHours.open)} tomorrow`;
+                    } else {
+                        const dayName = checkDay.charAt(0).toUpperCase() + checkDay.slice(1);
+                        statusText = `Closed until ${convertTo12HourFormat(dayHours.open)} ${dayName}`;
+                    }
+                    foundOpenDay = true;
+                    break;
+                }
+            }
+        }
     }
 
     const popupContent = days.map(day => {

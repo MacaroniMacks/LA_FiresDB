@@ -300,102 +300,26 @@
             return `${hour}:${minute} ${ampm}`;
         }
 
-        function updateCenterCardPreview(userData) {
-    if (!userData) {
-        console.error('No user data provided to updateCenterCardPreview');
-        return;
-    }
-
-    // Update center name
-    const centerNameEl = document.getElementById('previewCenterName');
-    if (centerNameEl) {
-        centerNameEl.textContent = userData.centerName || 'Unnamed Center';
-    }
-
-    // Update address
-    // Update address and location elements
-const addressEl = document.getElementById('previewAddress');
-const addressWrapper = document.querySelector('.address-wrapper');
-const dotSeparator = document.querySelector('.dot-separator');
-const distanceEl = document.getElementById('previewDistance');
-const locationIcon = document.querySelector('.location-icon');
-
-// Check if we have valid address info
-const hasValidAddress = userData.addressInfo && 
-    userData.addressInfo.street && 
-    userData.addressInfo.city && 
-    userData.addressInfo.zipCode;
-
-// Handle address elements visibility
-if (hasValidAddress) {
-    // Show address-related elements
-    if (addressWrapper) addressWrapper.style.display = 'flex';
-    if (locationIcon) locationIcon.style.display = 'block';
-    if (dotSeparator) dotSeparator.style.display = 'block';
+        function generateHoursHTML(hours) {
+    if (!hours) return '';
     
-    // Update address text
-    if (addressEl) {
-        let address = [
-            userData.addressInfo.street,
-            userData.addressInfo.unit ? `Unit ${userData.addressInfo.unit}` : null,
-            userData.addressInfo.city,
-            userData.addressInfo.zipCode
-        ].filter(Boolean).join(', ');
-        addressEl.textContent = address;
-    }
-} else {
-    // Hide address-related elements
-    if (addressWrapper) addressWrapper.style.display = 'none';
-    if (locationIcon) locationIcon.style.display = 'none';
-    if (dotSeparator) dotSeparator.style.display = 'none';
-    
-    if (addressEl) {
-        addressEl.textContent = '';
-    }
-}
-
-// Always show distance if we have coordinates
-if (distanceEl && userData.location) {
-    distanceEl.style.display = 'inline';
-    distanceEl.textContent = '0 miles away';
-} else if (distanceEl) {
-    distanceEl.style.display = 'none';
-}
-
-    // Update phone and email
-    const phoneEl = document.getElementById('previewPhone');
-    const emailEl = document.getElementById('previewEmail');
-    if (phoneEl && emailEl && userData.contactInfo) {
-        phoneEl.textContent = userData.contactInfo.phone || '';
-        emailEl.textContent = userData.contactInfo.email || '';
-    }
-
-    // Update hours
-    const hoursHeaderEl = document.getElementById('hoursHeader');
-    const hoursStatusEl = document.getElementById('hoursStatus');
-    const hoursContainerEl = document.getElementById('hoursOfOperation');
-    const hoursPopupEl = document.querySelector('#hoursOfOperation .hours-popup');
-
-    if (hoursContainerEl && userData.operatingHours) {
-    let hoursStatus = 'Closed';
     const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     const currentDay = days[new Date().getDay()];
-    const todayHours = userData.operatingHours[currentDay];
     const currentDate = new Date();
-
+    
+    // Check if any days have hours set
     const hasAnyHours = days.some(day => {
-        const dayHours = userData.operatingHours[day];
+        const dayHours = hours[day];
         return dayHours && dayHours.open && dayHours.close;
     });
 
-    // If no days have hours, hide the status completely
+    // If no days have hours set, don't return any hours display
     if (!hasAnyHours) {
-        if (hoursStatusEl) {
-            hoursStatusEl.style.display = 'none';
-        }
-    } else {
-        hoursStatusEl.style.display = 'block';
+        return '';
     }
+
+    const todayHours = hours[currentDay];
+    let statusText = 'Closed';
 
     if (todayHours && todayHours.open && todayHours.close) {
         const [openHour, openMinute] = todayHours.open.split(':').map(Number);
@@ -411,70 +335,149 @@ if (distanceEl && userData.location) {
         }
 
         if (currentDate >= openTime && currentDate <= closeTime) {
-            hoursStatus = `Open until ${convertTo12HourFormat(todayHours.close)}`;
-        } else {
-            // Find the next open day
-            let foundOpenDay = false;
+            statusText = `Open until ${convertTo12HourFormat(todayHours.close)}`;
+        }
+    }
+    
+    // If not currently open, always check future days for next opening
+    if (statusText === 'Closed') {
+        // Find the next open day
+        let foundOpenDay = false;
+        
+        // Check today (if there are hours) and up to 7 days ahead
+        for (let i = 0; i < 7; i++) {
+            const checkIndex = (days.indexOf(currentDay) + i) % 7;
+            const checkDay = days[checkIndex];
+            const dayHours = hours[checkDay];
             
-            // Check up to 7 days ahead
-            for (let i = 0; i < 7; i++) {
-                const checkIndex = (days.indexOf(currentDay) + i) % 7;
-                const checkDay = days[checkIndex];
-                const dayHours = userData.operatingHours[checkDay];
+            if (dayHours && dayHours.open) {
+                const [nextOpenHour, nextOpenMinute] = dayHours.open.split(':').map(Number);
+                const nextOpenTime = new Date();
+                nextOpenTime.setHours(nextOpenHour, nextOpenMinute, 0);
                 
-                if (dayHours && dayHours.open) {
-                    const [nextOpenHour, nextOpenMinute] = dayHours.open.split(':').map(Number);
-                    const nextOpenTime = new Date();
-                    nextOpenTime.setHours(nextOpenHour, nextOpenMinute, 0);
-                    
-                    if (i === 0) {
-                        // Today: only show if the opening time hasn't passed
-                        if (currentDate < nextOpenTime) {
-                            hoursStatus = `Closed until ${convertTo12HourFormat(dayHours.open)}`;
-                            foundOpenDay = true;
-                            break;
-                        }
-                    } else {
-                        // Future days
-                        nextOpenTime.setDate(nextOpenTime.getDate() + i);
-                        if (i === 1) {
-                            hoursStatus = `Closed until ${convertTo12HourFormat(dayHours.open)} tomorrow`;
-                        } else {
-                            const dayName = checkDay.charAt(0).toUpperCase() + checkDay.slice(1);
-                            hoursStatus = `Closed until ${convertTo12HourFormat(dayHours.open)} ${dayName}`;
-                        }
+                if (i === 0) {
+                    // Today: only show if the opening time hasn't passed
+                    if (currentDate < nextOpenTime) {
+                        statusText = `Closed until ${convertTo12HourFormat(dayHours.open)}`;
                         foundOpenDay = true;
                         break;
                     }
+                } else {
+                    // Future days
+                    if (i === 1) {
+                        statusText = `Closed until ${convertTo12HourFormat(dayHours.open)} tomorrow`;
+                    } else {
+                        const dayName = checkDay.charAt(0).toUpperCase() + checkDay.slice(1);
+                        statusText = `Closed until ${convertTo12HourFormat(dayHours.open)} ${dayName}`;
+                    }
+                    foundOpenDay = true;
+                    break;
                 }
-            }
-            
-            if (!foundOpenDay) {
-                hoursStatus = 'Closed';
             }
         }
     }
 
-        // Update both hours status elements
-        if (hoursHeaderEl) {
-            hoursHeaderEl.textContent = hoursStatus;
+    const popupContent = days.map(day => {
+        const dayHours = hours[day];
+        if (dayHours?.open && dayHours?.close) {
+            return `<div class="day-hours">
+                ${day.charAt(0).toUpperCase() + day.slice(1)}: 
+                ${convertTo12HourFormat(dayHours.open)} - ${convertTo12HourFormat(dayHours.close)}
+            </div>`;
         }
-        if (hoursStatusEl) {
-            hoursStatusEl.textContent = hoursStatus;
-        }
+        return `<div class="day-hours">${day.charAt(0).toUpperCase() + day.slice(1)}: Closed</div>`;
+    }).join('');
 
-        // Update the hours popup
-        let hoursPopupContent = '';
-        days.forEach(day => {
-            const dayHours = userData.operatingHours[day];
-            if (dayHours && dayHours.open && dayHours.close) {
-                hoursPopupContent += `<div class="day-hours">${day.charAt(0).toUpperCase() + day.slice(1)}: ${convertTo12HourFormat(dayHours.open)} - ${convertTo12HourFormat(dayHours.close)}</div>`;
-            } else {
-                hoursPopupContent += `<div class="day-hours">${day.charAt(0).toUpperCase() + day.slice(1)}: Closed</div>`;
-            }
-        });
-        if (hoursPopupEl) {
-            hoursPopupEl.innerHTML = hoursPopupContent;
+    return `
+        <div class="center-hours">
+            <h4>${statusText}</h4>
+            <div class="hours-popup">
+                <div class="hours-content">
+                    ${popupContent}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function updateCenterCardPreview(userData) {
+    if (!userData) {
+        console.error('No user data provided to updateCenterCardPreview');
+        return;
+    }
+
+    // Update center name
+    const centerNameEl = document.getElementById('previewCenterName');
+    if (centerNameEl) {
+        centerNameEl.textContent = userData.centerName || 'Unnamed Center';
+    }
+
+    // Update address and location elements
+    const addressEl = document.getElementById('previewAddress');
+    const addressWrapper = document.querySelector('.address-wrapper');
+    const dotSeparator = document.querySelector('.dot-separator');
+    const distanceEl = document.getElementById('previewDistance');
+    const locationIcon = document.querySelector('.location-icon');
+
+    // Check if we have valid address info
+    const hasValidAddress = userData.addressInfo && 
+        userData.addressInfo.street && 
+        userData.addressInfo.city && 
+        userData.addressInfo.zipCode;
+
+    // Handle address elements visibility
+    if (hasValidAddress) {
+        // Show address-related elements
+        if (addressWrapper) addressWrapper.style.display = 'flex';
+        if (locationIcon) locationIcon.style.display = 'block';
+        if (dotSeparator) dotSeparator.style.display = 'block';
+        
+        // Update address text
+        if (addressEl) {
+            let address = [
+                userData.addressInfo.street,
+                userData.addressInfo.unit ? `Unit ${userData.addressInfo.unit}` : null,
+                userData.addressInfo.city,
+                userData.addressInfo.zipCode
+            ].filter(Boolean).join(', ');
+            addressEl.textContent = address;
+        }
+    } else {
+        // Hide address-related elements
+        if (addressWrapper) addressWrapper.style.display = 'none';
+        if (locationIcon) locationIcon.style.display = 'none';
+        if (dotSeparator) dotSeparator.style.display = 'none';
+        
+        if (addressEl) {
+            addressEl.textContent = '';
+        }
+    }
+
+    // Always show distance if we have coordinates
+    if (distanceEl && userData.location) {
+        distanceEl.style.display = 'inline';
+        distanceEl.textContent = '0 miles away';
+    } else if (distanceEl) {
+        distanceEl.style.display = 'none';
+    }
+
+    // Update phone and email
+    const phoneEl = document.getElementById('previewPhone');
+    const emailEl = document.getElementById('previewEmail');
+    if (phoneEl && emailEl && userData.contactInfo) {
+        phoneEl.textContent = userData.contactInfo.phone || '';
+        emailEl.textContent = userData.contactInfo.email || '';
+    }
+
+    // Update hours
+    const hoursContainer = document.getElementById('hoursOfOperation');
+    if (hoursContainer && userData.operatingHours) {
+        const hoursHTML = generateHoursHTML(userData.operatingHours);
+        if (hoursHTML) {
+            hoursContainer.innerHTML = hoursHTML;
+            hoursContainer.style.display = 'block';
+        } else {
+            hoursContainer.style.display = 'none';
         }
     }
 
