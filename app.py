@@ -60,7 +60,7 @@ def login_required(view_function):
             if request.headers.get('Accept') == 'application/json':
                 return jsonify({'error': 'No token provided'}), 401
             # For browser requests
-            return redirect(url_for('login'))
+            return redirect(url_for('landing-page'))
 
         try:
             decoded_token = auth.verify_id_token(
@@ -75,7 +75,7 @@ def login_required(view_function):
             print(f"Token verification error: {str(e)}")
             if request.headers.get('Accept') == 'application/json':
                 return jsonify({'error': str(e)}), 401
-            return redirect(url_for('login'))
+            return redirect(url_for('landing-page'))
 
     return wrapped_view
 
@@ -147,7 +147,7 @@ def api_signup():
         print("Error during signup:", str(e))
         return jsonify({'error': str(e)}), 400
     
-@app.route('/api/login', methods=['POST', 'OPTIONS'])
+@app.route('/api/landing_page', methods=['POST', 'OPTIONS'])
 def api_login():
     # Handle preflight requests
     if request.method == 'OPTIONS':
@@ -254,11 +254,11 @@ def donation_center_profile():
 def logout():
     # Clear any session data if you're using sessions
     session.clear()
-    return redirect(url_for('login'))
+    return redirect(url_for('landing-page'))
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template('404.html'), 404
+    return render_template('404.html'), 404         
 
 @app.errorhandler(500)
 def internal_server_error(e):

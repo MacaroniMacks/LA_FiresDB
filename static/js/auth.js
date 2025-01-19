@@ -84,7 +84,7 @@ async function signup(email, password, userData) {
 function logout() {
     firebase.auth().signOut().then(() => {
         localStorage.removeItem('authToken');
-        window.location.href = '/login';
+        window.location.href = '/landing-page';
     }).catch((error) => {
         console.error('Logout error:', error);
     });
