@@ -19,6 +19,20 @@
 
     <div class="dashboard-container">
         <div class="filter-section">
+            <div class="filter-header">
+                <div class="icon-container">
+                    <svg class="location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </div>
+                <div class="header-text">
+                    <h3 class="header-title">Nearby Centers</h3>
+                    <p class="header-subtitle" id="centersCount">0 centers within 5 miles</p>
+                </div>
+            </div>
             <select id="radiusFilter" onchange="updateDonationCenters(userData)">
                 <option value="5">Within 5 miles</option>
                 <option value="10">Within 10 miles</option>
@@ -210,7 +224,6 @@ async function updateDonationCenters(userData) {
                 
                 const hasAddress = centerData.addressInfo.street != null;
 
-
             centerCard.innerHTML = `
                 <div class="center-header">
                     <div class="center-main-info">
@@ -235,7 +248,7 @@ async function updateDonationCenters(userData) {
                         <div class="location-info">
                 ${hasAddress ? `
                     <div class="address-wrapper" style="display: flex;">    
-                        <svg class="location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="pin-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                                 d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
@@ -308,6 +321,12 @@ async function updateDonationCenters(userData) {
                 centersList.appendChild(centerCard);
             }
         });
+
+        const centerCount = document.querySelectorAll('.center-card').length;
+        const countText = radius === 999 
+        ? `${centerCount} centers found` 
+        : `${centerCount} centers within ${radius} miles`;
+        document.getElementById('centersCount').textContent = countText;
 
         if (centersList.children.length === 0) {
             centersList.innerHTML = `
