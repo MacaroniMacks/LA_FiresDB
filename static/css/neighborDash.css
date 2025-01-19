@@ -716,6 +716,13 @@ input[type="number"]::placeholder {
     border-radius: 4px;
 }
 
+.center-location {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
 .location-info {
     display: flex;
     align-items: center;
@@ -723,7 +730,6 @@ input[type="number"]::placeholder {
     gap: 0.25rem;
     color: #666;
     font-size: 0.875rem;
-    margin-bottom: 0.5rem;
 }
 
 .address-wrapper {
@@ -736,7 +742,7 @@ input[type="number"]::placeholder {
     height: 16px;
     margin-right: 0.25rem;
     flex-shrink: 0;
-    color: #666;
+    display: block; /* Force display */
 }
 
 .dot-separator {
@@ -745,6 +751,12 @@ input[type="number"]::placeholder {
     background-color: #666;
     border-radius: 50%;
     margin: 0 0.5rem;
+    display: block; /* Force display */
+}
+
+.distance {
+    color: #6e7072;
+    font-size: 0.9rem;
 }
 
 @media (max-width: 640px) {

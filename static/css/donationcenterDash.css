@@ -668,3 +668,32 @@ body {
         display: none;
     }
 }
+
+.neighbors-count {
+    background-color: #f8f9fa;
+    border: 1px solid #e6e6e6;
+    border-radius: 4px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.neighbors-count #neighborCountText {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    color: #333;
+    font-size: 1rem;
+}
+
+.neighbors-count #neighborCount {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2563eb; /* A nice blue to highlight the number */
+    background-color: #dbeafe; /* Light blue background for the number */
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    margin-left: 0.5rem;
+}

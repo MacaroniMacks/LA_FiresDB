@@ -70,7 +70,7 @@ async function signup(email, password, userData) {
         });
 
         if (response.ok) {
-            window.location.href = '/login';
+            window.location.href = '/landing-page';
         } else {
             throw new Error('Signup failed');
         }
