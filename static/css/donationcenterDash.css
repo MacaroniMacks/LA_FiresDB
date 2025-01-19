@@ -301,11 +301,11 @@ body {
     border-radius: 4px;
 }
 
-.matches-needs {
+.matches-inventory {
     background-color: #e6f7ff;  /* Light blue background */
 }
 
-.matches-donations {
+.matches-needs {
     background-color: #ffeded;  /* Light red background */
 }
 
@@ -328,9 +328,12 @@ body {
     font-size: 0.9rem;
 }
 
+.matches-section.matches-needs li {
+    margin-bottom: .25rem;
+}
+
 .match-item {
-    color: #444;
-    font-weight: 500;
+    font-weight: 425;
 }
 
 .match-quantity {
@@ -670,4 +673,76 @@ body {
     .dot-separator {
         display: none;
     }
+}
+
+.neighbors-count {
+    background-color: #f8f9fa;
+    border: 1px solid #e6e6e6;
+    border-radius: 4px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.neighbors-count #neighborCountText {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    color: #333;
+    font-size: 1rem;
+}
+
+.neighbors-count #neighborCount {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2563eb; /* A nice blue to highlight the number */
+    background-color: #dbeafe; /* Light blue background for the number */
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    margin-left: 0.5rem;
+}
+
+.svg-icon {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.matches-section h4 .svg-icon {
+    position: relative;
+    top: 2px;
+    margin-right: 5px;
+}
+
+.matches-section h4 {
+    display: flex;
+    align-items: center;
+}
+
+.matches-section.matches-inventory h4 span {
+    color: #001973;
+}
+
+.matches-section h4 .box-icon {
+    color: #4285F4; /* Inventory icon color */
+}
+
+.matches-section.matches-inventory ul {
+    color: #00028f; 
+}
+
+.matches-section h4 .heart-icon {
+    color: #B30000; /* Needs icon color */
+}
+
+.matches-section.matches-needs h4 span {
+    color: #720000; 
+}
+
+.matches-section.matches-needs ul {
+    color: #8f0000; 
 }

@@ -253,8 +253,14 @@ async function updateDonationCenters(userData) {
     ` : ''}
 
     <div class="matches-container">
-        <div class="matches-section matches-needs">
-            <h4>Center's Inventory</h4>
+        <div class="matches-section matches-inventory">
+            <h4><svg class="svg-icon box-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                                <polyline points="3.29 7 12 12 20.71 7"/>
+                                <line x1="12" y1="22" x2="12" y2="12"/>
+                            </svg>
+                                <span>Center's Inventory</span>
+                                </h4>
             <ul>
                 ${centerData?.inventory?.length > 0 ? 
                     centerData.inventory.map(item => `
@@ -266,8 +272,12 @@ async function updateDonationCenters(userData) {
                 }
             </ul>
         </div>
-        <div class="matches-section matches-donations">
-            <h4>Center's Needs</h4>
+        <div class="matches-section matches-needs">
+            <h4> <svg class="svg-icon heart-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+                                <path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0 5.4 5.4 0 0 0 0 7.65l.77.78 7.65 7.65 7.65-7.65.77-.78a5.4 5.4 0 0 0 0-7.65z"/>
+                            </svg>
+                                <span>Center's Needs</span>
+                            </h4>
             <ul>
                 ${centerData?.needs?.length > 0 ? 
                     centerData.needs.map(need => `
@@ -742,14 +752,14 @@ function viewCenter(centerId) {
 
         // Use multiple selectors to find items
         const inventorySelectors = [
-            '.matches-section.matches-needs .match-item',
-            '.matches-needs .match-item',
+            '.matches-section.matches-inventory .match-item',
+            '.matches-inventory .match-item',
             '.center-card .match-item'
         ];
 
         const needSelectors = [
-            '.matches-section.matches-donations .match-item',
-            '.matches-donations .match-item',
+            '.matches-section.matches-needs .match-item',
+            '.matches-needs .match-item',
             '.center-card .match-item'
         ];
 
