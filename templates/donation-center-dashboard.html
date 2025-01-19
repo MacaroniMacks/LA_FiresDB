@@ -379,6 +379,20 @@ if (distanceEl && userData.location) {
     const todayHours = userData.operatingHours[currentDay];
     const currentDate = new Date();
 
+    const hasAnyHours = days.some(day => {
+        const dayHours = userData.operatingHours[day];
+        return dayHours && dayHours.open && dayHours.close;
+    });
+
+    // If no days have hours, hide the status completely
+    if (!hasAnyHours) {
+        if (hoursStatusEl) {
+            hoursStatusEl.style.display = 'none';
+        }
+    } else {
+        hoursStatusEl.style.display = 'block';
+    }
+
     if (todayHours && todayHours.open && todayHours.close) {
         const [openHour, openMinute] = todayHours.open.split(':').map(Number);
         const [closeHour, closeMinute] = todayHours.close.split(':').map(Number);
