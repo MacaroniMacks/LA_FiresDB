@@ -17,6 +17,14 @@
         </div>              
     </nav>
 
+    <div class="emergency-banner">
+        <div class="emergency-content">
+            <span class="emergency-dot">●</span>
+            <span class="emergency-text">Emergency Response Active: LA Fires</span>
+            <a href="#" class="emergency-link">View Updates</a>
+        </div>
+    </div>
+
     <div class="dashboard-container">
         <div class="filter-section">
             <div class="filter-header">
@@ -293,7 +301,7 @@ async function updateDonationCenters(userData) {
 
     ${centerData.centerNotes ? `
         <div class="additional-info">
-            <h4>Additional Information</h4>
+            <h4>Notes</h4>
             <p>${centerData.centerNotes}</p>
         </div>
     ` : ''}

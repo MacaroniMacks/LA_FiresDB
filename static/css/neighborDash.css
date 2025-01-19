@@ -650,14 +650,15 @@ input[type="number"]::placeholder {
 
 /* Add these styles for additional info section */
 .additional-info {
-    margin-bottom: .75rem;
+    margin-bottom: .50rem;
     padding: 1rem;
-    background: #f8f9fa;
     border-radius: 4px;
+    border: 1px solid rgb(201, 201, 201); /* This will create a visible border */
 }
 
 .additional-info h4 {
     margin-bottom: 0.5rem;
+    font-weight: 575;
 }
 
 .additional-info p {
@@ -943,3 +944,53 @@ input[type="number"]::placeholder {
     border-color: #3b82f6;
 }
 
+.emergency-banner {
+    background-color: #fee2e2;
+    border-bottom: 1px solid #fecaca;
+    padding: 10px 0;
+}
+
+.emergency-content {
+    max-width: 450px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+}
+
+.emergency-dot {
+    color: #dc2626;
+    margin-right: 10px;
+    animation: pulse 1.5s infinite;
+}
+
+.emergency-text {
+    color: #7f1d1d;
+    font-weight: 600;
+    flex-grow: 1;
+}
+
+.emergency-link {
+    color: #b91c1c;
+    text-decoration: none;
+}
+
+.emergency-link:hover {
+    text-decoration: underline;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.5;
+        transform: scale(0.8);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0.5;
+        transform: scale(0.8);
+    }
+}
