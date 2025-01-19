@@ -89,7 +89,7 @@ def landing_page():
 
 @app.route('/login')
 def login():
-    return render_template('login.html')
+    return render_template('login.html')    
 
 @app.route('/signup')
 def signup():
@@ -254,7 +254,7 @@ def donation_center_profile():
 def logout():
     # Clear any session data if you're using sessions
     session.clear()
-    return redirect(url_for('landing-page'))
+    return redirect(url_for('landing_page'))
 
 @app.errorhandler(404)
 def page_not_found(e):
