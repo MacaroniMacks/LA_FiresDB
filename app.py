@@ -60,7 +60,7 @@ def login_required(view_function):
             if request.headers.get('Accept') == 'application/json':
                 return jsonify({'error': 'No token provided'}), 401
             # For browser requests
-            return redirect(url_for('landing-page'))
+            return redirect(url_for('landing_page'))
 
         try:
             decoded_token = auth.verify_id_token(
@@ -75,7 +75,7 @@ def login_required(view_function):
             print(f"Token verification error: {str(e)}")
             if request.headers.get('Accept') == 'application/json':
                 return jsonify({'error': str(e)}), 401
-            return redirect(url_for('landing-page'))
+            return redirect(url_for('landing_page'))
 
     return wrapped_view
 

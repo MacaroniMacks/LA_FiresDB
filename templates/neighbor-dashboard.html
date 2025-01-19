@@ -73,6 +73,27 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 
+function reorderCenterDivs() {
+    const centersList = document.getElementById('donationCentersList');
+    
+    // Convert center cards to an array and sort
+    const centerCards = Array.from(centersList.querySelectorAll('.center-card'));
+    
+    const sortedCards = centerCards.sort((a, b) => {
+        // Extract distance from .distance element
+        const distanceA = parseFloat(a.querySelector('.distance').textContent);
+        const distanceB = parseFloat(b.querySelector('.distance').textContent);
+        
+        return distanceA - distanceB;
+    });
+
+    // Clear existing centers
+    centersList.innerHTML = '';
+
+    // Reappend sorted cards
+    sortedCards.forEach(card => centersList.appendChild(card));
+}
+
 function toRad(degrees) {
     return degrees * (Math.PI/180);
 }
@@ -176,20 +197,21 @@ function generateHoursHTML(hours, centerId) {
         return `<div class="day-hours">${day.charAt(0).toUpperCase() + day.slice(1)}: Closed</div>`;
     }).join('');
 
+    const statusClass = statusText.toLowerCase().includes('open') ? 'hours-status-open' : 'hours-status-closed';
+
     return `
-        <div class="center-hours">
-            <h4>${statusText}</h4>
-            <div class="hours-popup">
-                <div class="hours-content">
-                    ${popupContent}
-                </div>
+    <div class="center-hours">
+        <h4 class="${statusClass}">${statusText}</h4>
+        <div class="hours-popup">
+            <div class="hours-content">
+                ${popupContent}
             </div>
         </div>
-    `;
+    </div>
+`;
 }
 
 async function updateDonationCenters(userData) {
-
     
     console.log('Starting updateDonationCenters');
     const radius = parseFloat(document.getElementById('radiusFilter').value);
@@ -321,6 +343,8 @@ async function updateDonationCenters(userData) {
                 centersList.appendChild(centerCard);
             }
         });
+
+        reorderCenterDivs();
 
         const centerCount = document.querySelectorAll('.center-card').length;
         const countText = radius === 999 

@@ -87,7 +87,7 @@ body {
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 1rem;
-    min-width: 150px;
+    min-width: 165px;
 }
 
 /* Analytics Grid */
@@ -587,7 +587,6 @@ body {
     padding-top: 3px;
     border-radius: 4px;
     color: #666;
-    text-decoration: underline;
     justify-content: flex-end;
     width: fit-content;
     margin-left: auto;  /* This pushes it to the right */
@@ -611,6 +610,7 @@ body {
     text-align: left;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     text-align: center;
+    line-height: 1.9;
 }
 
 .center-hours:hover .hours-popup {
@@ -747,27 +747,61 @@ body {
     color: #8f0000; 
 }
 
-.filter-section {
-    background: white;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-}
+/* Add to your donationcenterDash.css */
 
-.filter-section select {
-    width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.375rem;
-    background-color: white;
-    color: #374151;
+.hours-status-open {
+    background-color: #ecfdf5;  /* green-50 */
+    color: #047857;  /* green-700 */
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
     font-size: 0.875rem;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    font-weight: 500;
 }
 
-.filter-section select:focus {
-    outline: 2px solid #3b82f6;
-    outline-offset: 2px;
-    border-color: #3b82f6;
+.hours-status-closed {
+    background-color: #fef2f2;  /* red-50 */
+    color: #991b1b;  /* red-700 */
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.center-hours {
+    text-align: right;
+    position: relative;
+    padding-top: 3px;
+    justify-content: flex-end;
+    width: fit-content;
+    margin-left: auto;
+}
+
+.center-hours .hours-popup {
+    position: absolute;
+    background-color: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    z-index: 100;
+    width: 260px;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 100%;
+    margin-top: 0.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+    text-align: center;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.center-hours:hover .hours-popup {
+    opacity: 1;
+    visibility: visible;
+}
+
+.center-hours .hours-popup .day-hours {
+    margin-bottom: 0.5rem;
+    color: #374151;  /* gray-700 */
+    font-size: 0.875rem;
 }

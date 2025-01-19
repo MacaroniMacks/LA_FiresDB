@@ -389,9 +389,11 @@
         return `<div class="day-hours">${day.charAt(0).toUpperCase() + day.slice(1)}: Closed</div>`;
     }).join('');
 
+    const statusClass = statusText.toLowerCase().includes('open') ? 'hours-status-open' : 'hours-status-closed';
+
     return `
         <div class="center-hours">
-            <h4>${statusText}</h4>
+            <h4 class="${statusClass}">${statusText}</h4>
             <div class="hours-popup">
                 <div class="hours-content">
                     ${popupContent}
