@@ -653,7 +653,6 @@ function switchTab(tabName) {
 
         async function updateAnalytics(centerLocation) {
     if (!centerLocation || !centerLocation.latitude || !centerLocation.longitude) {
-        console.log('Location not yet initialized');
         return;
     }
 
@@ -661,7 +660,6 @@ function switchTab(tabName) {
     const itemFilterInput = document.getElementById('itemName_0');
         
     if (!itemFilterInput) {
-        console.error('Item filter input not found');
         return;
     }
 
@@ -706,16 +704,21 @@ function switchTab(tabName) {
                 }
 
                 if (searchItem && neighborData.canDonate) {
-                    let hasDonatable = false;
+                    let neighborItemsAvailable = 0;
                     neighborData.canDonate.forEach(item => {
                         const itemNameLower = item.itemName?.toLowerCase() || '';
+                        
                         if (itemNameLower === searchItem) {
-                            hasDonatable = true;
-                            const quantity = item.quantity || 1;
-                            totalItemsAvailable += quantity;
+                            const quantity = Number(item.quantity) || 1;
+                            neighborItemsAvailable += quantity;
                         }
                     });
-                    if (hasDonatable) donorsCount++;
+
+                    // Only increment donors if they have any matching items
+                    if (neighborItemsAvailable > 0) {
+                        donorsCount++;
+                        totalItemsAvailable += neighborItemsAvailable;
+                    }
                 }
             }
         });
@@ -905,13 +908,13 @@ async function saveProfileChanges() {
             contactInfo: {
                 phone: contactInfo.phone,  // Always include phone
                 email: document.getElementById('emailError').style.display === 'none' 
-                    ? document.getElementById('contactEmail').value || currentUserData.contactInfo.email  // Update email if valid
-                    : currentUserData.contactInfo.email  // Preserve existing email if invalid
+                    ? (document.getElementById('contactEmail').value.trim() || currentUserData.contactInfo?.email || null)  // Use new email, or keep existing, or send null
+                    : currentUserData.contactInfo?.email  // Keep existing email if invalid
             },
             addressInfo: locationInfo,
             centerNotes: centerNotes,
             lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-        };
+            };
 
 
         // Update in Firestore
