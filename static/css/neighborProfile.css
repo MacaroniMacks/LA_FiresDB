@@ -663,3 +663,54 @@ textarea.styled-input {
     resize: vertical;
     min-height: 80px;
 }
+
+.popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.popup-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    text-align: center;
+    width: 1200px !important;  /* Increased from previous values */
+    max-width: 95% !important;  /* Slightly increased for better mobile handling */
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* Initial welcome popup - keep it narrower */
+.popup > .popup-content:not(.form-popup) {
+    width: 550px !important;
+    max-width: 90% !important;
+    min-width: unset !important;
+}
+
+/* Form popup */
+.popup > .popup-content.form-popup {
+    width: 1200px !important;
+    min-width: 1000px !important;
+    max-width: 95% !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1250px) {
+    .popup > .popup-content.form-popup {
+        min-width: 95% !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .popup-content {
+        padding: 1.5rem;
+    }
+}

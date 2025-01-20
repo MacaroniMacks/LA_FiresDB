@@ -36,7 +36,15 @@
 
                 <div class="input-group">
                     <label for="itemName_0"></label>
-                    <input type="text" id="itemName_0" required>
+                    <input 
+                        type="text" 
+                        id="itemName_0" 
+                        required 
+                        oninput="updateAnalytics(centerLocation)"
+                        onchange="updateAnalytics(centerLocation)"
+                        onkeyup="updateAnalytics(centerLocation)"
+                        onpaste="updateAnalytics(centerLocation)"
+                    >
                 </div>
             </div>
 
@@ -651,7 +659,7 @@ function switchTab(tabName) {
 
     const radius = parseFloat(document.getElementById('radiusFilter').value);
     const itemFilterInput = document.getElementById('itemName_0');
-    
+        
     if (!itemFilterInput) {
         console.error('Item filter input not found');
         return;
@@ -660,7 +668,6 @@ function switchTab(tabName) {
     const searchItem = itemFilterInput.value.trim().toLowerCase();
     
     try {
-        // Get all neighbors within radius
         const neighborsSnapshot = await firebase.firestore()
             .collection('users')
             .where('isDonationCenter', '==', false)
@@ -675,7 +682,6 @@ function switchTab(tabName) {
             const neighborData = doc.data();
             
             if (!neighborData.location) {
-                console.log('Neighbor has no location:', doc.id);
                 return;
             }
 
@@ -688,25 +694,25 @@ function switchTab(tabName) {
 
             if (distance <= radius || radius === 999) {
                 neighborsInRadius++;
-
-                // Count needs by urgency
-                if (neighborData.needs) {
+                
+                // Only process item-specific counts if there's a search term
+                if (searchItem && neighborData.needs) {
                     neighborData.needs.forEach(need => {
                         const itemNameLower = need.itemName?.toLowerCase() || '';
-                        if (searchItem || itemNameLower === searchItem) {
+                        if (itemNameLower === searchItem) {
                             needsCount[need.urgency || 'low']++;
                         }
                     });
                 }
 
-                // Count available donations
-                if (neighborData.canDonate) {
+                if (searchItem && neighborData.canDonate) {
                     let hasDonatable = false;
                     neighborData.canDonate.forEach(item => {
                         const itemNameLower = item.itemName?.toLowerCase() || '';
-                        if (searchItem || itemNameLower === searchItem) {
+                        if (itemNameLower === searchItem) {
                             hasDonatable = true;
-                            totalItemsAvailable += item.quantity || 1;
+                            const quantity = item.quantity || 1;
+                            totalItemsAvailable += quantity;
                         }
                     });
                     if (hasDonatable) donorsCount++;
@@ -714,13 +720,25 @@ function switchTab(tabName) {
             }
         });
 
-        // Update neighbors count
-        const neighborCountEl = document.getElementById('neighborCount');
-        if (neighborCountEl) {
-            neighborCountEl.textContent = neighborsInRadius.toString();
+        // Always update neighbors count
+        document.getElementById('neighborCount').textContent = neighborsInRadius.toString();
+
+        // Update item-specific stats
+        if (!searchItem) {
+            document.getElementById('totalNeeding').textContent = '0';
+            document.getElementById('totalDonors').textContent = '0';
+            document.getElementById('totalItems').textContent = '0';
+            const urgencyBar = document.querySelector('.urgency-bar');
+            if (urgencyBar) {
+                urgencyBar.classList.add('empty');
+                document.getElementById('highUrgency').style.width = '0%';
+                document.getElementById('mediumUrgency').style.width = '0%';
+                document.getElementById('lowUrgency').style.width = '0%';
+            }
+            return;
         }
 
-        // Calculate total needs and update urgency bar
+        // Update urgency bar and other stats if there's a search term
         const totalNeeds = needsCount.high + needsCount.medium + needsCount.low;
         const urgencyBar = document.querySelector('.urgency-bar');
 
@@ -760,13 +778,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const itemFilterInput = document.getElementById('itemName_0');
-        
-        // Modify the debounce function to handle the case where centerLocation might be undefined
-        const debouncedUpdate = debounce((location) => {
-            if (location) {
-                updateAnalytics(location);
-            }
-        }, 300);
 
         firebase.auth().onAuthStateChanged(async (user) => {
             if (user) {

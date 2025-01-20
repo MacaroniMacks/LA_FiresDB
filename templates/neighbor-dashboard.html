@@ -20,8 +20,8 @@
     <div class="emergency-banner">
         <div class="emergency-content">
             <span class="emergency-dot">●</span>
-            <span class="emergency-text">Emergency Response Active: LA Fires</span>
-            <a href="#" class="emergency-link">View Updates</a>
+            <span class="emergency-text">Live Updates About the Fires From LAFD</span>
+            <a href="#" class="emergency-link" onclick="openUpdatesPopup(event)">View Updates</a>
         </div>
     </div>
 
@@ -877,6 +877,94 @@ function viewCenter(centerId) {
         });
     }, 100); // Short delay to ensure DOM is updated
 }
+
+function openUpdatesPopup(event) {
+    event.preventDefault();
+    
+    const popup = document.createElement('div');
+    popup.className = 'emergency-popup';
+    
+    popup.innerHTML = `
+        <div class="emergency-popup-content">
+            <div class="emergency-popup-header">
+                <h2 class="emergency-popup-title">Emergency Updates</h2>
+                <button onclick="closeEmergencyPopup()" class="emergency-popup-close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="emergency-popup-body">
+                <div class="twitter-timeline-wrapper">
+                    <div id="loading-indicator" class="loading-indicator">
+                        <div class="loading-spinner"></div>
+                        <div class="loading-text">Loading Twitter updates...</div>
+                    </div>
+                    <div id="twitter-embed">
+                        <a class="twitter-timeline" 
+                           data-height="600"
+                           data-chrome="noheader nofooter transparent"
+                           href="https://twitter.com/LACoFDPIO">
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(popup);
+
+    // Close popup when clicking outside
+    popup.addEventListener('click', function(e) {
+        if (e.target === popup) {
+            closeEmergencyPopup();
+        }
+    });
+    
+    // Load Twitter widget script if not already loaded
+    if (!document.querySelector('script[src="https://platform.twitter.com/widgets.js"]')) {
+        const script = document.createElement('script');
+        script.src = 'https://platform.twitter.com/widgets.js';
+        script.async = true;
+        
+        // Add event listener for when Twitter widgets load
+        script.onload = function() {
+            if (window.twttr) {
+                window.twttr.ready(function() {
+                    window.twttr.events.bind('rendered', function() {
+                        const loadingIndicator = document.getElementById('loading-indicator');
+                        if (loadingIndicator) {
+                            loadingIndicator.style.display = 'none';
+                        }
+                    });
+                });
+            }
+        };
+        
+        document.body.appendChild(script);
+    } else {
+        // If script is already loaded, just bind the event
+        if (window.twttr) {
+            window.twttr.ready(function() {
+                window.twttr.events.bind('rendered', function() {
+                    const loadingIndicator = document.getElementById('loading-indicator');
+                    if (loadingIndicator) {
+                        loadingIndicator.style.display = 'none';
+                    }
+                });
+            });
+        }
+    }
+}
+
+function closeEmergencyPopup() {
+    const popup = document.querySelector('.emergency-popup');
+    if (popup) {
+        popup.remove();
+    }
+}
+
        function closePopup() {
            const popup = document.querySelector('.popup');
            if (popup) {

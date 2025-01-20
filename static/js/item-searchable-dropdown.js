@@ -125,15 +125,15 @@ class SearchableDropdown {
         const wrapper = this.input.closest('.searchable-dropdown-wrapper');
         const dropdownList = wrapper.querySelector('.searchable-dropdown-list');
         const searchTerm = this.input.value.toLowerCase();
-
+    
         // Clear previous options
         dropdownList.innerHTML = '';
-
+    
         // Filter and render matching options
         const matchingOptions = this.options.filter(option => 
             option.toLowerCase().includes(searchTerm)
         );
-
+    
         matchingOptions.forEach(option => {
             const optionElement = document.createElement('div');
             optionElement.textContent = option;
@@ -150,10 +150,15 @@ class SearchableDropdown {
                 dropdownList.style.display = 'none';
                 this.validSelection = true;
                 this.input.setCustomValidity('');
+                
+                // Trigger updateAnalytics if it exists and centerLocation is available
+                if (typeof updateAnalytics === 'function' && typeof centerLocation !== 'undefined') { //for donation center dash
+                    updateAnalytics(centerLocation);
+                }
             });
             dropdownList.appendChild(optionElement);
         });
-
+    
         // If no matching options, show a message
         if (matchingOptions.length === 0) {
             const noOptionsElement = document.createElement('div');
