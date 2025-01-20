@@ -33,6 +33,12 @@ async function login(email, password) {
 
                 console.log('User document data:', userData);
 
+                if (!userData.location || !userData.location.latitude || !userData.location.longitude) {
+                    console.log('No location set, redirecting to setup location');
+                    window.location.href = `/setup-location?token=${token}`;
+                    return;
+                }
+
                 // Determine dashboard based on user type
                 const dashboardUrl = userData.isDonationCenter 
                     ? '/donation-center-dashboard' 
