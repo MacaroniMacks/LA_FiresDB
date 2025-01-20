@@ -1,50 +1,118 @@
 async function login(email, password) {
     try {
-        // Check rate limit for login
-        checkRateLimit('login');
-
+        // Reset all message displays
         document.getElementById('errorMessage').style.display = 'none';
         document.getElementById('verificationMessage').style.display = 'none';
         document.getElementById('resendSuccess').style.display = 'none';
+        
+        // Select the error text element specifically
+        const errorMessageEl = document.getElementById('errorMessage');
+        const errorTextEl = document.getElementById('errorText');
+        const resetPasswordButton = document.getElementById('resetPasswordButton');
 
-        const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
-        const user = userCredential.user;
+        try {
+            const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+            const user = userCredential.user;
 
-        // Skip email verification check for localhost/127.0.0.1
-        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        if (!user.emailVerified && !isLocalhost) {
-            document.getElementById('verificationMessage').style.display = 'block';
-            await user.sendEmailVerification();
-            throw new Error('Please verify your email before logging in. A new verification email has been sent.');
+            // Skip email verification check for localhost/127.0.0.1
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            if (!user.emailVerified && !isLocalhost) {
+                document.getElementById('verificationMessage').style.display = 'block';
+                await user.sendEmailVerification();
+                throw new Error('Please verify your email before logging in. A new verification email has been sent.');
+            }
+
+            // Get the ID token
+            const token = await user.getIdToken(true);
+            localStorage.setItem('authToken', token);
+
+            // Fetch user data and determine dashboard route
+            try {
+                const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
+                const userData = userDoc.data();
+
+                console.log('User document data:', userData);
+
+                // Determine dashboard based on user type
+                const dashboardUrl = userData.isDonationCenter 
+                    ? '/donation-center-dashboard' 
+                    : '/neighbor-dashboard';
+
+                // Navigate with token
+                try {
+                    window.location.href = `${dashboardUrl}?token=${token}`;
+                } catch (navError) {
+                    console.error('Navigation error:', navError);
+                    errorTextEl.textContent = 'Unable to navigate. Please try again.';
+                    errorMessageEl.style.display = 'block';
+                }
+            } catch (firestoreError) {
+                console.error('Firestore document retrieval error:', firestoreError);
+                errorTextEl.textContent = 'Error retrieving user profile.';
+                errorMessageEl.style.display = 'block';
+            }
+        } catch (error) {
+            // More detailed error handling
+            console.error('Login error:', error);
+            
+            // Reset error display
+            errorMessageEl.style.display = 'block';
+            resetPasswordButton.style.display = 'none';
+
+            // Specific error handling
+            switch (error.code) {
+                case 'auth/wrong-password':
+                    errorTextEl.textContent = 'Incorrect password. Please try again.';
+                    resetPasswordButton.style.display = 'block';
+                    break;
+                case 'auth/user-not-found':
+                    errorTextEl.textContent = 'No account found with this email. Please sign up.';
+                    break;
+                case 'auth/invalid-credential':
+                    errorTextEl.textContent = 'Invalid login credentials. Please recheck your email and password or reset password.';
+                    resetPasswordButton.style.display = 'block';
+                    break;
+                case 'auth/too-many-requests':
+                    errorTextEl.textContent = 'Too many login attempts. Please try again later.';
+                    break;
+                default:
+                    errorTextEl.textContent = error.message || 'An unexpected error occurred. Please try again.';
+            }
+        }
+    } catch (outerError) {
+        // Catch any unexpected errors
+        console.error('Unexpected login error:', outerError);
+        const errorMessageEl = document.getElementById('errorMessage');
+        const errorTextEl = document.getElementById('errorText');
+        
+        errorMessageEl.style.display = 'block';
+        errorTextEl.textContent = 'An unexpected error occurred. Please try again.';
+    }
+}
+
+async function sendPasswordReset() {
+    try {
+        const emailInput = document.getElementById('email');
+        const email = emailInput.value.trim();
+        
+        if (!email) {
+            throw new Error('No email address found');
         }
 
-        const token = await user.getIdToken(true);
-        localStorage.setItem('authToken', token);
-
-        await new Promise((resolve) => {
-            const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
-                unsubscribe();
-                resolve(user);
-            });
-        });
-
-        const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
-        const userData = userDoc.data();
-
-        if (!userData.location) {
-            window.location.href = '/setup-location';
-            return;
-        }
-
-        if (userData.isDonationCenter === true) {
-            window.location.href = '/donation-center-dashboard';
-        } else {
-            window.location.href = '/neighbor-dashboard';
-        }
+        await firebase.auth().sendPasswordResetEmail(email);
+        
+        // Update error message to show success
+        const errorText = document.getElementById('errorText');
+        const resetButton = document.getElementById('resetPasswordButton');
+        
+        errorText.textContent = 'Password reset email sent! Please check your inbox.';
+        resetButton.style.display = 'none';
+        
+        // Clean up stored email
+        localStorage.removeItem('resetEmail');
     } catch (error) {
-        console.error('Login error:', error);
-        document.getElementById('errorMessage').textContent = error.message;
-        document.getElementById('errorMessage').style.display = 'block';
+        console.error('Password reset error:', error);
+        document.getElementById('errorText').textContent = error.message;
     }
 }
 
