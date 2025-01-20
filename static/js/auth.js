@@ -1,14 +1,26 @@
 async function login(email, password) {
     try {
-        // Sign in the user
+        // Check rate limit for login
+        checkRateLimit('login');
+
+        document.getElementById('errorMessage').style.display = 'none';
+        document.getElementById('verificationMessage').style.display = 'none';
+        document.getElementById('resendSuccess').style.display = 'none';
+
         const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
         const user = userCredential.user;
 
-        // Get the authentication token
+        // Skip email verification check for localhost/127.0.0.1
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        if (!user.emailVerified && !isLocalhost) {
+            document.getElementById('verificationMessage').style.display = 'block';
+            await user.sendEmailVerification();
+            throw new Error('Please verify your email before logging in. A new verification email has been sent.');
+        }
+
         const token = await user.getIdToken(true);
         localStorage.setItem('authToken', token);
 
-        // Wait for auth state to be fully ready
         await new Promise((resolve) => {
             const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
                 unsubscribe();
@@ -16,44 +28,41 @@ async function login(email, password) {
             });
         });
 
-        // Fetch user document from Firestore to get user type and location
         const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
         const userData = userDoc.data();
 
-        // Check if location exists
         if (!userData.location) {
-            const url = new URL('/setup-location', window.location.origin);
-            url.searchParams.append('token', token);
-            window.location.href = url.toString();
+            window.location.href = '/setup-location';
             return;
         }
 
-        // If location exists, proceed with dashboard routing
-        let dashboardPath = '/neighbor-dashboard';
         if (userData.isDonationCenter === true) {
-            dashboardPath = '/donation-center-dashboard';
+            window.location.href = '/donation-center-dashboard';
+        } else {
+            window.location.href = '/neighbor-dashboard';
         }
-
-        // Create URL with token
-        const url = new URL(dashboardPath, window.location.origin);
-        url.searchParams.append('token', token);
-        
-        // Redirect to appropriate dashboard
-        window.location.href = url.toString();
     } catch (error) {
         console.error('Login error:', error);
-        alert(error.message);
+        document.getElementById('errorMessage').textContent = error.message;
+        document.getElementById('errorMessage').style.display = 'block';
     }
 }
 
-// Signup function
 async function signup(email, password, userData) {
     try {
+        console.log('Starting signup process...');
+        document.getElementById('errorMessage').style.display = 'none';
+        document.getElementById('signupSuccess').style.display = 'none';
+
         // Create user in Firebase
         const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
-        const token = await userCredential.user.getIdToken();
+        const user = userCredential.user;
         
-        // Store token
+        // Send verification email without a continue URL
+        await user.sendEmailVerification();
+        console.log('Verification email sent');
+
+        const token = await user.getIdToken();
         localStorage.setItem('authToken', token);
         
         // Send additional data to your backend
@@ -70,17 +79,41 @@ async function signup(email, password, userData) {
         });
 
         if (response.ok) {
-            window.location.href = '/landing-page';
+            // Hide all other elements
+            document.querySelector('.signup-header').style.display = 'none';
+            document.querySelector('.toggle-container').style.display = 'none';
+            document.getElementById('signupForm').style.display = 'none';
+            
+            // Show only success message
+            document.getElementById('signupSuccess').style.display = 'block';
         } else {
             throw new Error('Signup failed');
         }
     } catch (error) {
         console.error('Signup error:', error);
+        document.getElementById('errorMessage').textContent = error.message;
+        document.getElementById('errorMessage').style.display = 'block';
         throw error;
     }
-}    
+}
 
-// Logout function
+async function resendVerificationEmail() {
+    try {
+        const user = firebase.auth().currentUser;
+        if (user) {
+            await user.sendEmailVerification({
+                url: `${window.location.protocol}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}/landing-page`,
+                handleCodeInApp: false
+            });
+            document.getElementById('resendSuccess').style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error sending verification:', error);
+        document.getElementById('errorMessage').textContent = error.message;
+        document.getElementById('errorMessage').style.display = 'block';
+    }
+}
+
 function logout() {
     firebase.auth().signOut().then(() => {
         localStorage.removeItem('authToken');

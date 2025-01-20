@@ -205,3 +205,57 @@ input:checked + .toggle-slider:before {
         font-size: 0.875rem;
     }
 }
+
+.message {
+    padding: 12px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.message.error {
+    background-color: #fee2e2;
+    border: 1px solid #ef4444;
+    color: #991b1b;
+}
+
+.message.success {
+    background-color: #dcfce7;
+    border: 1px solid #22c55e;
+    color: #166534;
+}
+
+.text-link {
+    color: inherit;
+    text-decoration: underline;
+}
+
+.message-container {
+    margin-bottom: 20px;
+}
+
+.resend-button {
+    background-color: transparent;
+    border: 1px solid currentColor;
+    color: inherit;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.resend-button:hover {
+    background-color: #fdba74;
+    border-color: #fdba74;
+    color: #7c2d12;
+}
+
+.resend-button:active {
+    transform: scale(0.98);
+}
+
+.resend-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

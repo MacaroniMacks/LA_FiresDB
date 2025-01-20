@@ -514,7 +514,7 @@ function viewCenter(centerId) {
 
         if (!token) {
             console.log('No token found in URL');
-            window.location.href = '/login';
+            window.location.href = '/landing-page';
             return;
         }
 
@@ -528,7 +528,7 @@ function viewCenter(centerId) {
         const user = firebase.auth().currentUser;
         if (!user) {
             console.log('No user found');
-            window.location.href = '/login';
+            window.location.href = '/landing-page';
             return;
         }
 
@@ -574,7 +574,7 @@ function viewCenter(centerId) {
 
     } catch (error) {
         console.error('Dashboard initialization error:', error);
-        window.location.href = '/login';
+        window.location.href = '/landing-page';
     }
 });
 

@@ -80,6 +80,24 @@
                         <p>Log in to offer help or find support</p>
                     </div>
 
+                    <div class="message-container">
+                        <div id="errorMessage" class="message error" style="display: none;">
+                            <span id="errorText"></span>
+                            <button onclick="sendPasswordReset()" class="reset-password-button" id="resetPasswordButton" style="display: none;">
+                                Reset Password
+                            </button>
+                        </div>
+                        <div id="verificationMessage" class="message warning" style="display: none;">
+                            Please verify your email before logging in.
+                            <button onclick="resendVerificationEmail()" class="resend-button">
+                                Resend Verification Email
+                            </button>
+                        </div>
+                        <div id="resendSuccess" class="message success" style="display: none;">
+                            Verification email has been sent! Please check your inbox.
+                        </div>
+                    </div>
+
                     <form id="loginForm" class="login-form">
                       <div class="form-group">
                           <label for="email">Email</label>

@@ -309,3 +309,111 @@ h1 {
 .emergency-notice a:hover {
     color: #b91c1c;
 }
+
+.message {
+    display: none;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+}
+.error {
+    background-color: #fee2e2;
+    border: 1px solid #ef4444;
+    color: #991b1b;
+}
+.success {
+    background-color: #dcfce7;
+    border: 1px solid #22c55e;
+    color: #166534;
+}
+.warning {
+    background-color: #fff7ed;
+    border: 1px solid #f97316;
+    color: #9a3412;
+}
+.btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: none;
+    margin: 5px;
+}
+.btn-primary {
+    background-color: #3b82f6;
+    color: white;
+}
+.btn-secondary {
+    background-color: #6b7280;
+    color: white;
+}
+
+.resend-button {
+    background-color: transparent;
+    border: 1px solid currentColor;
+    color: inherit;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    margin-top: 5px;
+}
+
+.resend-button:hover {
+    background-color: #fdba74;
+    border-color: #fdba74;
+    color: #7c2d12;
+}
+
+.resend-button:active {
+    transform: scale(0.98);
+}
+
+.resend-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Success message style for when verification email is sent */
+.message.success {
+    background-color: #dcfce7;
+    border: 1px solid #22c55e;
+    color: #166534;
+    padding: 16px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.message.error {
+    background-color: #fee2e2;
+    border: 1px solid #ef4444;
+    color: #991b1b;
+    padding: 16px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    text-align: center;
+}
+
+.reset-password-button {
+    background-color: transparent;
+    border: 1px solid currentColor;
+    color: inherit;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.reset-password-button:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+.reset-password-button:active {
+    transform: scale(0.98);
+}
