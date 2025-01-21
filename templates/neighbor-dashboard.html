@@ -6,6 +6,7 @@
     <title>Neighbor Dashboard</title>
     <link rel="stylesheet" href="/static/css/neighborDash.css">
     <link rel="stylesheet" href="/static/css/item-dropdown-styles.css">
+    <link rel="stylesheet" href="/static/css/navBar.css">
     <script src="/static/js/item-searchable-dropdown.js"></script>
 </head>
 <body>
@@ -233,6 +234,8 @@ async function updateDonationCenters(userData) {
         const centersList = document.getElementById('donationCentersList');
         centersList.innerHTML = '';
 
+        let centersCount = 0;
+
         centersSnapshot.forEach(doc => {
             const centerData = doc.data();
             
@@ -249,10 +252,11 @@ async function updateDonationCenters(userData) {
             );
 
             if (distance <= radius || radius === 999) {
+                centersCount++;
                 const centerCard = document.createElement('div');
                 centerCard.className = 'center-card';
                 
-                const hasAddress = centerData.addressInfo.street != null;
+                const hasAddress = centerData.addressInfo && centerData.addressInfo.street != null;
 
             centerCard.innerHTML = `
                 <div class="center-header">
@@ -354,10 +358,10 @@ async function updateDonationCenters(userData) {
 
         reorderCenterDivs();
 
-        const centerCount = document.querySelectorAll('.center-card').length;
         const countText = radius === 999 
-        ? `${centerCount} centers found` 
-        : `${centerCount} centers within ${radius} miles`;
+            ? `${centersCount} centers found` 
+            : `${centersCount} centers within ${radius} miles`;
+
         document.getElementById('centersCount').textContent = countText;
 
         if (centersList.children.length === 0) {

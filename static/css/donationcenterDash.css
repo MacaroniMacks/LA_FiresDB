@@ -10,27 +10,6 @@ body {
     min-height: 100vh;
 }
 
-/* Navbar - Matched with neighbor dash */
-.navbar {
-    background: white;
-    padding: 1rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.nav-brand {
-    font-size: 1.25rem;
-    font-weight: 600;
-}
-
-.nav-links {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-}
-
 .logout-btn {
     padding: 0.5rem 1rem;
     background: #333;

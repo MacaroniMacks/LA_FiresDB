@@ -10,33 +10,6 @@ body {
     min-height: 100vh;
 }
 
-.navbar {
-    background: white;
-    padding: 1rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.nav-brand {
-    text-decoration: none;
-    color: inherit;
-    cursor: pointer;
-    font-size: 1.25rem;
-    font-weight: 600;
-}
-
-.nav-brand:hover {
-    text-decoration: none;
-}
-
-.nav-links {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-}
-
 .logout-btn {
     padding: 0.5rem 1rem;
     background: #333;
