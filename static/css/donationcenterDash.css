@@ -785,3 +785,84 @@ body {
     color: #374151;  /* gray-700 */
     font-size: 0.875rem;
 }
+
+.help-banner {
+    background-color: #dbeafe;
+    border-bottom: 1px solid #93c5fd;
+    position: relative;
+}
+
+.help-banner .emergency-content {
+    max-width: 870px;
+    margin: 0 auto;
+    padding: 10px 15px;
+}
+
+.help-banner .emergency-dot {
+    color: #2563eb;
+    animation: pulse 1.5s infinite;
+    margin-right: 5px;
+}
+
+.help-banner .emergency-text {
+    color: #1e40af;
+    font-weight: 600;
+}
+
+.help-banner .emergency-link {
+    color: #1d4ed8;
+    position: relative;
+    left: 20px;
+}
+
+.banner-close-btn {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.banner-close-btn:hover {
+    background-color: rgba(37, 99, 235, 0.1);
+}
+
+.help-banner + .help-banner {
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.help-banner {
+    transition: all 0.3s ease-out;
+}
+
+.help-banner.hide {
+    opacity: 0;
+    height: 0;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.5;
+        transform: scale(0.8);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0.5;
+        transform: scale(0.8);
+    }
+}
