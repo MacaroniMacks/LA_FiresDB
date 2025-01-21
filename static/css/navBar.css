@@ -1,7 +1,8 @@
 
 .navbar {
     background: white;
-    padding: 1rem 2rem;
+    padding: .5rem 2rem;
+    padding-left: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -9,11 +10,14 @@
 }
 
 .nav-brand {
+    max-height: 50px;
     text-decoration: none;
     color: inherit;
     cursor: pointer;
-    font-size: 1.25rem;
-    font-weight: 600;
+}
+
+.nav-logo {
+    max-height: 50px;
 }
 
 .nav-brand:hover {
