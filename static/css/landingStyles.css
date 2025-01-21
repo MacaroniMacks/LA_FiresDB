@@ -418,3 +418,7 @@ h1 {
 .reset-password-button:active {
     transform: scale(0.98);
 }
+
+.nav-logo {
+    max-width: 470px;
+}
