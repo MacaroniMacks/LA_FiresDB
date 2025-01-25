@@ -1,29 +1,80 @@
 // Comprehensive list of common donation and need items
 // Comprehensive list of common donation and need items
 const COMMON_ITEMS = [
-    // Food
-    'Canned Goods', 'Non-Perishable Food', 'Rice', 'Pasta', 'Bread', 
-    'Cereal', 'Peanut Butter', 'Canned Soup', 'Instant Noodles', 
-    'Protein Bars', 'Baby Food',
+   // Food & Water
+   'Canned Goods', 'Non-Perishable Food', 'Rice', 'Pasta', 'Bread', 
+   'Cereal', 'Peanut Butter', 'Canned Soup', 'Instant Noodles', 
+   'Protein Bars', 'Baby Food', 'Trail Mix', 'Dried Fruits', 'Crackers',
+   'Bottled Water', 'Sports Drinks', 'Electrolyte Powder', 'Canned Vegetables',
+   'Canned Fruit', 'Canned Meat', 'Canned Fish', 'Nuts', 'Granola Bars',
+   'Powdered Milk', 'Coffee', 'Tea', 'Sugar', 'Salt', 'Energy Drinks',
 
-    // Clothing
-    'T-Shirts', 'Sweaters', 'Jackets', 'Pants', 'Shorts', 'Underwear', 
-    'Socks', 'Shoes', 'Coats', 'Blankets', 'Sleeping Bags',
+   // Clothing & Protection
+   'T-Shirts', 'Sweaters', 'Jackets', 'Pants', 'Shorts', 'Underwear', 
+   'Socks', 'Shoes', 'Coats', 'Blankets', 'Sleeping Bags', 'Work Boots',
+   'Long Sleeve Shirts', 'Rain Gear', 'Bandanas', 'Hats', 'Work Gloves',
+   'Emergency Blankets', 'Tents', 'Safety Goggles', 'Protective Eyewear',
+   'Steel-Toed Boots', 'Durable Work Pants', 'Leather Work Gloves',
+   'Respiratory Protection', 'High-Visibility Vests', 'Fire-Resistant Clothing',
+   'Dust Masks', 'Safety Helmets', 'Wool Socks', 'Thermal Underwear',
+   'Weather-Proof Jackets',
 
-    // Hygiene
-    'Toothpaste', 'Toothbrush', 'Soap', 'Shampoo', 'Feminine Products', 
-    'Deodorant', 'Hand Sanitizer', 'Toilet Paper', 'Wet Wipes', 
-    'First Aid Kit',
+   // Hygiene & Medical
+   'Toothpaste', 'Toothbrush', 'Soap', 'Shampoo', 'Feminine Products', 
+   'Pads', 'Tampons', 'Deodorant', 'Hand Sanitizer', 'Toilet Paper', 
+   'Wet Wipes', 'First Aid Kit', 'Pain Relievers', 'Bandages',
+   'Antibiotic Ointment', 'Sunscreen', 'Lip Balm', 'Hand Cream',
+   'Eye Drops', 'Tissues', 'Prescription Medications', 'Burn Cream',
+   'Gauze', 'Medical Tape', 'Hydrogen Peroxide', 'Alcohol Wipes',
+   'Face Masks', 'Hand Soap', 'Antibacterial Soap', 'Contact Solution',
+   'Allergy Medicine', 'Cough Medicine', 'Inhalers', 'Medical Gloves',
+   'Cold Packs', 'Hot Packs', 'Ace Bandages', 'Anti-Itch Cream',
 
-    // Baby Supplies
+    // Baby & Child Supplies
     'Diapers', 'Baby Wipes', 'Baby Bottles', 'Baby Formula',
+    'Baby Food', 'Baby Blankets', 'Baby Clothes', 'Baby Medications',
+    'Baby Sunscreen', 'Baby Soap', 'Baby Shampoo', 'Diaper Rash Cream',
+    'Baby First Aid Kit', 'Baby Hygiene Kit', 'Baby Carriers',
+    'Children Clothes', 'Children Shoes', 'Children Medicine',
 
-    // General Supplies
-    'Water Bottles', 'Batteries', 'Flashlights', 'Masks', 'Gloves', 
-    'Cleaning Supplies', 'Trash Bags', 'Paper Towels',
+   // Emergency & General Supplies
+   'Water Bottles', 'Batteries', 'Flashlights', 'Masks', 'Gloves', 
+   'Cleaning Supplies', 'Trash Bags', 'Paper Towels', 'N95 Masks',
+   'Air Purifiers', 'Air Filters', 'Respirator Masks', 'Battery-Powered Fan',
+   'Portable Radio', 'Phone Chargers', 'Heavy-Duty Trash Bags',
+   'Storage Bins', 'Plastic Containers', 'Ziploc Bags', 'Laundry Detergent',
+   'Bleach', 'Emergency Radio', 'Solar Chargers', 'Portable Battery Packs',
+   'Battery-Operated Fans', 'Emergency Candles', 'Waterproof Matches',
+   'Emergency Whistles', 'Portable Stove', 'Fuel Canisters', 'Water Filters',
+   'Water Purification Tablets', 'Emergency Light Sticks', 'Tarps',
+   'Portable Generator', 'Extension Cords', 'Multi-Tool', 'Fire Extinguisher',
+   'Carbon Monoxide Detector', 'Smoke Detector',
 
-    // Miscellaneous
-    'Books', 'School Supplies', 'Toys', 'Pet Food'
+   // Tools & Recovery
+   'Basic Tool Kit', 'Utility Knife', 'Duct Tape', 'Rope',
+   'Box Cutter', 'Scissors', 'Battery-Powered Lantern', 'Work Gloves',
+   'Shovels', 'Rakes', 'Wheelbarrows', 'Push Brooms', 'Safety Goggles',
+   'Dust Masks', 'Heavy-Duty Garbage Bags', 'Industrial Cleaner',
+   'Buckets', 'Wire Cutters', 'Pliers', 'Hammers', 'Hand Saws',
+   'Measuring Tape', 'Level', 'Screwdrivers', 'Nails', 'Screws',
+
+   // Documentation & Communication
+   'Document Holders', 'Plastic Sheet Protectors', 
+   'Waterproof Document Cases', 'Notebooks', 'Pens',
+   'Emergency Contact Lists', 'Insurance Information', 'Maps',
+   'Legal Documents', 'Medical Records', 'Prescription Lists',
+   'Property Photographs', 'Important Phone Numbers',
+
+   // Pet Supplies
+   'Pet Food', 'Pet Water Bowls', 'Pet Carriers', 'Pet Medications',
+   'Pet First Aid Supplies', 'Pet Leashes', 'Pet Beds', 'Pet Toys',
+   'Pet Cleaning Supplies', 'Pet Waste Bags',
+
+   // Miscellaneous
+   'Books', 'School Supplies', 'Toys', 'Paper', 'Pencils',
+   'Small Board Games', 'Playing Cards', 'Coloring Books',
+   'Battery-Operated Clock', 'Calendar', 'Small Mirror',
+   'Reading Glasses', 'Earplugs', 'Hand-Powered Tools'
 ];
 /**
  * Validate item inputs to ensure they are from the predefined list
