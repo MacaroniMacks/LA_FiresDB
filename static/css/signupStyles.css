@@ -314,7 +314,7 @@ input:checked + .toggle-slider:before {
     background: white;
     padding: 30px;
     border-radius: 8px;
-    width: 300px;
+    width: 400px;
     text-align: center;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
