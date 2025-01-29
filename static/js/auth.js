@@ -96,6 +96,99 @@ async function login(email, password) {
     }
 }
 
+async function googleSignup(userType, centerName = null) {
+    try {
+        console.log('Starting Google signup process...');
+        document.getElementById('errorMessage').style.display = 'none';
+        document.getElementById('signupSuccess').style.display = 'none';
+
+        // Create Google authentication provider
+        const provider = new firebase.auth.GoogleAuthProvider();
+        
+        // Perform Google Sign-In
+        const userCredential = await firebase.auth().signInWithPopup(provider);
+        const user = userCredential.user;
+        
+        // Send verification email if not already verified
+        if (!user.emailVerified) {
+            await user.sendEmailVerification();
+            console.log('Verification email sent');
+        }
+
+        // Get ID token
+        const token = await user.getIdToken();
+        localStorage.setItem('authToken', token);
+        
+        // Prepare user data
+        const userData = {
+            email: user.email,
+            userType: userType,
+            firstName: user.displayName ? user.displayName.split(' ')[0] : '',
+            lastName: user.displayName ? user.displayName.split(' ').slice(1).join(' ') : ''
+        };
+
+        // Add center name for donation centers
+        if (userType === 'donationCenter' && centerName) {
+            userData.centerName = centerName;
+        }
+
+        // Send additional data to backend
+        const response = await fetch('/api/signup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                ...userData,
+                idToken: token
+            })
+        });
+
+        if (response.ok) {
+            // Redirect to setup location
+            window.location.href = `/setup-location?token=${token}`;
+        } else {
+            throw new Error('Signup failed');
+        }
+    } catch (error) {
+        console.error('Google signup error:', error);
+        document.getElementById('errorMessage').textContent = error.message;
+        document.getElementById('errorMessage').style.display = 'block';
+        throw error;
+    }
+}
+
+// Add this to your auth.js file or in a script tag
+async function handleGoogleSignIn() {
+    try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        const result = await firebase.auth().signInWithPopup(provider);
+        
+        // Check if this is a new user
+        if (result.additionalUserInfo.isNewUser) {
+            // Redirect to signup page with the Google account info
+            const user = result.user;
+            // Sign out the user since we want them to complete signup
+            await firebase.auth().signOut();
+            
+            // Redirect to signup with email parameter
+            window.location.href = `/signup?email=${encodeURIComponent(user.email)}&provider=google`;
+        } else {
+            // Existing user - proceed with normal sign in
+            // Your existing post-login redirect logic here
+        }
+    } catch (error) {
+        console.error("Google sign in error:", error);
+        // Handle errors appropriately
+        const errorMessage = document.getElementById('errorText');
+        if (errorMessage) {
+            errorMessage.textContent = error.message;
+            document.getElementById('errorMessage').style.display = 'block';
+        }
+    }
+}
+
 async function continueAsGuest() {
     try {
         // Sign in anonymously with Firebase

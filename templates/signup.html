@@ -1,16 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
     <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-MWCEE8FEXB"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-MWCEE8FEXB"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
 
-  gtag('config', 'G-MWCEE8FEXB');
-</script>
+      gtag('config', 'G-MWCEE8FEXB');
+    </script>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,18 +32,15 @@
             </div>
         </div>
 
-        <div class="toggle-container">
-            <div class="toggle-wrapper">
-                <span>Neighbor</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="userTypeToggle">
-                    <span class="toggle-slider"></span>
-                </label>
-                <span>Donation Center</span>
-            </div>
-        </div>
-
         <form id="signupForm">
+            <div class="form-group">
+                <label for="accountType">Account Type</label>
+                <select id="accountType" name="accountType" required>
+                    <option value="neighbor">Neighbor</option>
+                    <option value="donationCenter">Donation Center</option>
+                </select>
+            </div>
+
             <div class="form-group">
                 <label for="email">Email</label>
                 <input type="email" id="email" name="email" placeholder="Enter your email" required>
@@ -56,7 +52,7 @@
             </div>
 
             <!-- Donation center specific field -->
-            <div class="form-group donation-center-field" style="display: none;">
+            <div class="form-group donation-center-field">
                 <label for="centerName">Donation Center Name</label>
                 <input type="text" id="centerName" name="centerName" placeholder="Enter donation center name">
             </div>
@@ -66,11 +62,19 @@
                 Already have an account? <a href="/landing-page">Sign in</a>
             </div>
         </form>
+
+        <div class="or-divider">OR</div>
+
+        <button type="button" id="googleSignupButton" class="google-signup-button">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo">
+            Sign up with Google
+        </button>
     </div>
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <!-- Firebase Config -->
     <script src="{{ url_for('static', filename='js/config.js') }}"></script>
@@ -78,29 +82,53 @@
     <!-- Your auth.js -->
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 
-    <!-- Form handler -->
     <script>
-        const toggle = document.getElementById('userTypeToggle');
+        // Handle showing/hiding donation center field based on account type
+        const accountTypeSelect = document.getElementById('accountType');
         const donationCenterFields = document.querySelectorAll('.donation-center-field');
+        const centerNameInput = document.getElementById('centerName');
 
-        toggle.addEventListener('change', () => {
-            const isDonationCenter = toggle.checked;
+        // Add the URL parameter checker right here
+        // This checks if user was redirected from Google sign-in attempt
+        const urlParams = new URLSearchParams(window.location.search);
+        const email = urlParams.get('email');
+        const provider = urlParams.get('provider');
+
+        if (email && provider === 'google') {
+            // Pre-fill the email field
+            const emailInput = document.getElementById('email');
+            if (emailInput) {
+                emailInput.value = email;
+                emailInput.disabled = true; // Make it read-only since it's from Google
+            }
+            
+            // Show a message explaining why they're here
+            const errorDiv = document.getElementById('errorMessage');
+            if (errorDiv) {
+                errorDiv.textContent = 'Please choose your account type to continue with Google sign up or manual account creation';
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        accountTypeSelect.addEventListener('change', () => {
+            const isDonationCenter = accountTypeSelect.value === 'donationCenter';
 
             if (isDonationCenter) {
                 donationCenterFields.forEach(field => field.style.display = 'block');
-                document.getElementById('centerName').setAttribute('required', '');
+                centerNameInput.setAttribute('required', '');
             } else {
                 donationCenterFields.forEach(field => field.style.display = 'none');
-                document.getElementById('centerName').removeAttribute('required');
+                centerNameInput.removeAttribute('required');
             }
         });
 
+        // Form submission handler
         document.getElementById('signupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const userType = toggle.checked ? 'donationCenter' : 'neighbor';
+            const userType = accountTypeSelect.value;
 
             const userData = {
                 email,
@@ -109,7 +137,7 @@
             };
 
             if (userType === 'donationCenter') {
-                userData.centerName = document.getElementById('centerName').value;
+                userData.centerName = centerNameInput.value;
             }
 
             try {
@@ -117,6 +145,73 @@
             } catch (error) {
                 console.error('Signup error:', error);
                 alert(error.message);
+            }
+        });
+
+        // Google Signup handler
+        document.getElementById('googleSignupButton').addEventListener('click', async () => {
+            const accountType = document.getElementById('accountType').value;
+
+            if (accountType === 'donationCenter') {
+                // Create and show modal for donation center name
+                const modal = document.createElement('div');
+                modal.innerHTML = `
+                    <div class="google-signup-modal">
+                        <div class="google-signup-modal-content">
+                            <h2>Donation Center Details</h2>
+                            <form id="donationCenterModalForm">
+                                <input 
+                                    type="text" 
+                                    id="donationCenterNameModal" 
+                                    placeholder="Enter Donation Center Name" 
+                                    required
+                                >
+                                <div class="modal-actions">
+                                    <button type="button" id="cancelDonationCenterModal">Cancel</button>
+                                    <button type="submit">Continue</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+
+                return new Promise((resolve, reject) => {
+                    const form = document.getElementById('donationCenterModalForm');
+                    const cancelButton = document.getElementById('cancelDonationCenterModal');
+
+                    const submitHandler = async (e) => {
+                        e.preventDefault();
+                        const centerName = document.getElementById('donationCenterNameModal').value.trim();
+                        
+                        if (centerName) {
+                            document.body.removeChild(modal);
+                            form.removeEventListener('submit', submitHandler);
+                            cancelButton.removeEventListener('click', cancelHandler);
+                            
+                            try {
+                                await googleSignup('donationCenter', centerName);
+                                resolve();
+                            } catch (error) {
+                                reject(error);
+                            }
+                        }
+                    };
+
+                    const cancelHandler = () => {
+                        document.body.removeChild(modal);
+                        form.removeEventListener('submit', submitHandler);
+                        cancelButton.removeEventListener('click', cancelHandler);
+                        reject(new Error('Signup cancelled'));
+                    };
+
+                    form.addEventListener('submit', submitHandler);
+                    cancelButton.addEventListener('click', cancelHandler);
+                });
+            } else {
+                // Proceed with neighbor signup as normal
+                return googleSignup('neighbor');
             }
         });
     </script>
