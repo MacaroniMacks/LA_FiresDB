@@ -585,22 +585,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Add help banner for regular users if not closed
             if (!isBannerClosed() && bannerContainer) {
-                bannerContainer.innerHTML = `
-                    <div class="emergency-banner help-banner" id="helpBanner">
-                        <div class="emergency-content">
-                            <span class="emergency-dot help-dot">●</span>
-                            <span class="emergency-text help-text">Want to edit your needs and donations? Press your email on the top right to reach your profile.</span>
-                            <a href="#" class="emergency-link help-link" onclick="closeBannerAndGoToProfile(event)">Profile</a>
-                        </div>
-                        <button class="banner-close-btn" onclick="closeBanner()">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
-                        </button>
-                    </div>
-                `;
-            }
+    bannerContainer.innerHTML = `
+        <div class="emergency-banner help-banner" id="helpBanner">
+            <div class="emergency-content">
+                <span class="emergency-dot help-dot">●</span>
+                <span class="emergency-text help-text">Want to edit your needs and donations? Press your email on the top right to reach your profile.</span>
+                <a href="#" class="emergency-link help-link" onclick="closeBannerAndGoToProfile(event)">Profile</a>
+            </div>
+            <button class="banner-close-btn" id="bannerCloseBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+    `;
+    document.getElementById('bannerCloseBtn').addEventListener('click', closeBanner);
+}
         }
 
         // Rest of your initialization code...
@@ -1072,15 +1073,28 @@ async function closePopup() {
 }
 
 async function goToProfile(event) {
-            event.preventDefault();
-            const user = firebase.auth().currentUser;
-            if (user) {
-                const token = await user.getIdToken();
-                const url = new URL('/neighbor-profile', window.location.origin);
-                url.searchParams.append('token', token);
-                window.location.href = url.toString();
-            }
+    event.preventDefault();
+    const user = firebase.auth().currentUser;
+    if (user) {
+        // Check if user is guest by getting their data
+        const userDoc = await firebase.firestore()
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        const userData = userDoc.data();
+
+        if (userData.isGuest) {
+            // Redirect guests to signup
+            window.location.href = '/signup';
+        } else {
+            // Regular users go to profile with token
+            const token = await user.getIdToken();
+            const url = new URL('/neighbor-profile', window.location.origin);
+            url.searchParams.append('token', token);
+            window.location.href = url.toString();
         }
+    }
+}
 
 function setBannerClosed() {
     sessionStorage.setItem('helpBannerClosed', 'true');
@@ -1116,37 +1130,6 @@ function closeBannerAndGoToProfile(event) {
     setBannerClosed();
     goToProfile(event);
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Add console logs for debugging
-    console.log('Banner Closed Status:', isBannerClosed());
-
-    // Only show banner if it hasn't been closed
-    if (!isBannerClosed()) {
-        const banner = `
-    <div class="emergency-banner help-banner" id="helpBanner">
-        <div class="emergency-content">
-            <span class="emergency-dot help-dot">●</span>
-            <span class="emergency-text help-text">Want to edit your needs and donations? Press your email on the top right to reach your profile.</span>
-            <a href="#" class="emergency-link help-link" onclick="closeBannerAndGoToProfile(event)">Profile</a>
-        </div>
-        <button class="banner-close-btn" id="bannerCloseBtn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-        </button>
-    </div>
-`;
-
-const bannerContainer = document.getElementById('bannerContainer');
-if (bannerContainer) {
-    bannerContainer.innerHTML = banner;
-    // Attach event listener after banner is added to DOM
-    document.getElementById('bannerCloseBtn').addEventListener('click', closeBanner);
-}
-    }
-});
 
    </script>
 </body>
