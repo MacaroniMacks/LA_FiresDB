@@ -1,5 +1,4 @@
 serviceAccountKey.json
 /venv
 *.pyc
-
-/venv/Lib
+__pycache__/
