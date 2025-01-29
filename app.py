@@ -220,14 +220,62 @@ def api_login():
             'message': str(e)
         }), 500
 
+@app.route('/api/update_location', methods=['POST'])
+@login_required
+def update_location():
+    try:
+        data = request.get_json()
+        user_id = request.user['uid']
+        
+        # Update user's location in Firestore
+        db.collection('users').document(user_id).update({
+            'location': {
+                'latitude': float(data['latitude']),
+                'longitude': float(data['longitude']),
+                'timestamp': firestore.SERVER_TIMESTAMP
+            }
+        })
+
+        # Get user data to check if guest
+        user_doc = db.collection('users').document(user_id).get()
+        user_data = user_doc.to_dict()
+        
+        # Return success response with isGuest flag
+        return jsonify({
+            'status': 'success',
+            'isGuest': user_data.get('isGuest', False)
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
 
 @app.route('/neighbor-dashboard')
 @login_required
 def neighbor_dashboard():
-    # Check if it's an API request or browser request
-    if request.headers.get('Accept') == 'application/json':
-        return jsonify({'status': 'success'})
-    return render_template('neighbor-dashboard.html')
+    try:
+        # Get the current user's data
+        user = auth.get_user(request.user['uid'])
+        user_doc = db.collection('users').document(user.uid).get()
+        user_data = user_doc.to_dict()
+
+        # Check if user is a guest
+        is_guest = user_data.get('isGuest', False)
+        
+        # If it's an API request
+        if request.headers.get('Accept') == 'application/json':
+            return jsonify({
+                'status': 'success',
+                'isGuest': is_guest
+            })
+
+        # For browser requests, render the dashboard
+        return render_template(
+            'neighbor-dashboard.html',
+            is_guest=is_guest
+        )
+    except Exception as e:
+        print(f"Dashboard error: {str(e)}")
+        return redirect(url_for('landing_page'))
 
 @app.route('/neighbor-profile')
 @login_required

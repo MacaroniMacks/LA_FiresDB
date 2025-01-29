@@ -528,8 +528,15 @@ function viewCenter(centerId) {
     console.log('Viewing center:', centerId);
 }
 
-       document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async () => {
     try {
+        // Clear banner container initially
+        const bannerContainer = document.getElementById('bannerContainer');
+        if (bannerContainer) {
+            bannerContainer.innerHTML = '';
+        }
+
+        // Remove existing help banner if any
         localStorage.removeItem('helpBannerClosed');
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
@@ -540,6 +547,7 @@ function viewCenter(centerId) {
             return;
         }
 
+        // Wait for Firebase auth
         await new Promise((resolve) => {
             const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
                 unsubscribe();
@@ -557,24 +565,60 @@ function viewCenter(centerId) {
         const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
         const userData = userDoc.data();
 
-        document.getElementById('userEmail').textContent = user.email;
+        // Handle user display and banners based on user type
+        if (userData.isGuest) {
+            document.getElementById('userEmail').textContent = 'Guest User';
+            
+            // Add guest banner
+            if (bannerContainer) {
+                bannerContainer.innerHTML = `
+                    <div class="emergency-banner guest-banner">
+                        <div class="emergency-content">
+                            <span class="emergency-text">You are browsing as a guest. Create an account to add needs or donations.</span>
+                            <a href="/signup" class="emergency-link">Create Account</a>
+                        </div>
+                    </div>
+                `;
+            }
+        } else {
+            document.getElementById('userEmail').textContent = user.email;
+            
+            // Add help banner for regular users if not closed
+            if (!isBannerClosed() && bannerContainer) {
+                bannerContainer.innerHTML = `
+                    <div class="emergency-banner help-banner" id="helpBanner">
+                        <div class="emergency-content">
+                            <span class="emergency-dot help-dot">●</span>
+                            <span class="emergency-text help-text">Want to edit your needs and donations? Press your email on the top right to reach your profile.</span>
+                            <a href="#" class="emergency-link help-link" onclick="closeBannerAndGoToProfile(event)">Profile</a>
+                        </div>
+                        <button class="banner-close-btn" onclick="closeBanner()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+            }
+        }
 
-        // Check and store user location
+        // Rest of your initialization code...
         userLocation = userData.location;
         if (!userLocation) {
             window.location.href = '/setup-location';
             return;
         }
 
-        // Initialize centers list
         updateDonationCenters(userData);
 
         document.getElementById('radiusFilter').addEventListener('change', () => {
-            updateDonationCenters(userData);  // Pass userData here too
+            updateDonationCenters(userData);
         });
 
-        // Show welcome popup if needed
-        if ((!userData.canDonate || userData.canDonate.length === 0) && 
+        // Show welcome popup if needed for non-guest users
+        if (!userData.isGuest && 
+            (!userData.canDonate || userData.canDonate.length === 0) && 
             (!userData.needs || userData.needs.length === 0)) {
             const popup = document.createElement('div');
             popup.className = 'popup';
@@ -1026,7 +1070,8 @@ async function closePopup() {
         console.error('Error updating donation centers:', error);
     }
 }
-       async function goToProfile(event) {
+
+async function goToProfile(event) {
             event.preventDefault();
             const user = firebase.auth().currentUser;
             if (user) {
@@ -1036,33 +1081,38 @@ async function closePopup() {
                 window.location.href = url.toString();
             }
         }
-        function setBannerClosed() {
-    try {
-        // Use sessionStorage to ensure it's cleared on browser close
-        sessionStorage.setItem('helpBannerClosed', 'true');
-        
-        // Also use localStorage as a backup
-        localStorage.setItem('helpBannerClosed', 'true');
-    } catch (error) {
-        console.error('Error setting banner closed:', error);
-    }
+
+function setBannerClosed() {
+    sessionStorage.setItem('helpBannerClosed', 'true');
+    localStorage.setItem('helpBannerClosed', 'true');
 }
 
 function isBannerClosed() {
-    // Check both sessionStorage and localStorage
     return sessionStorage.getItem('helpBannerClosed') === 'true' || 
            localStorage.getItem('helpBannerClosed') === 'true';
 }
 
 function closeBanner() {
-    const banner = document.getElementById('helpBanner');
-    if (banner) {
-        banner.remove();
-        setBannerClosed();
+    // Get both the banner container and the banner itself
+    const bannerContainer = document.getElementById('bannerContainer');
+    const helpBanner = document.getElementById('helpBanner');
+    
+    // Clear the container's content
+    if (bannerContainer) {
+        bannerContainer.innerHTML = '';
     }
+    
+    // Also try to remove the banner directly if it exists
+    if (helpBanner) {
+        helpBanner.remove();
+    }
+    
+    // Set the banner as closed
+    setBannerClosed();
 }
 
 function closeBannerAndGoToProfile(event) {
+    event.preventDefault();
     setBannerClosed();
     goToProfile(event);
 }
@@ -1074,25 +1124,27 @@ document.addEventListener('DOMContentLoaded', function() {
     // Only show banner if it hasn't been closed
     if (!isBannerClosed()) {
         const banner = `
-            <div class="emergency-banner help-banner" id="helpBanner">
-                <div class="emergency-content">
-                    <span class="emergency-dot help-dot">●</span>
-                    <span class="emergency-text help-text">Want to edit your needs and donations? Press your email on the top right to reach your profile.</span>
-                    <a href="#" class="emergency-link help-link" onclick="closeBannerAndGoToProfile(event)">Profile</a>
-                </div>
-                <button class="banner-close-btn" onclick="closeBanner()">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
-            </div>
-        `;
-        
-        const bannerContainer = document.getElementById('bannerContainer');
-        if (bannerContainer) {
-            bannerContainer.innerHTML = banner;
-        }
+    <div class="emergency-banner help-banner" id="helpBanner">
+        <div class="emergency-content">
+            <span class="emergency-dot help-dot">●</span>
+            <span class="emergency-text help-text">Want to edit your needs and donations? Press your email on the top right to reach your profile.</span>
+            <a href="#" class="emergency-link help-link" onclick="closeBannerAndGoToProfile(event)">Profile</a>
+        </div>
+        <button class="banner-close-btn" id="bannerCloseBtn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+    </div>
+`;
+
+const bannerContainer = document.getElementById('bannerContainer');
+if (bannerContainer) {
+    bannerContainer.innerHTML = banner;
+    // Attach event listener after banner is added to DOM
+    document.getElementById('bannerCloseBtn').addEventListener('click', closeBanner);
+}
     }
 });
 

@@ -91,7 +91,7 @@
                         <h2>Join the Community</h2>
                         <p>Log in to offer help or find support</p>
                     </div>
-
+                
                     <div class="message-container">
                         <div id="errorMessage" class="message error" style="display: none;">
                             <span id="errorText"></span>
@@ -109,24 +109,39 @@
                             Verification email has been sent! Please check your inbox.
                         </div>
                     </div>
+                
 
                     <form id="loginForm" class="login-form">
-                      <div class="form-group">
-                          <label for="email">Email</label>
-                          <input type="email" id="email" name="email" placeholder="Enter your email" required>
-                      </div>
-                      <div class="form-group">
-                          <label for="password">Password</label>
-                          <input type="password" id="password" name="password" placeholder="Enter your password" required>
-                      </div>
-                      <button type="submit" class="login-button">Sign in</button>
-                  </form>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                        </div>
+                        
+                        <!-- Buttons Container -->
+                        <div class="buttons-container">
+                            <button type="submit" class="login-button">
+                                <svg viewBox="0 0 24 24" class="button-icon" fill="none" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                                Sign In
+                            </button>
+                            <button type="button" onclick="continueAsGuest()" class="guest-button">
+                                <svg viewBox="0 0 24 24" class="button-icon" fill="none" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                Continue as Guest
+                            </button>
+                        </div>
                     </form>
-
+                
                     <p class="signup-link">
                         New here? <a href="/signup">Create an account and join your neighbors</a>
                     </p>
-
+                
                     <div class="emergency-notice">
                         <p>Need immediate emergency help? <a href="tel:911">Call 911</a></p>
                     </div>

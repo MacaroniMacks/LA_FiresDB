@@ -96,6 +96,39 @@ async function login(email, password) {
     }
 }
 
+async function continueAsGuest() {
+    try {
+        // Sign in anonymously with Firebase
+        const userCredential = await firebase.auth().signInAnonymously();
+        
+        // Get ID token for our backend
+        const token = await userCredential.user.getIdToken();
+
+        // Create basic guest user data in Firestore
+        await firebase.firestore().collection('users').doc(userCredential.user.uid).set({
+            isGuest: true,
+            isDonationCenter: false,
+            email: `guest_${userCredential.user.uid}@guest.local`,
+            needs: [],
+            canDonate: [],
+            location: null,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Redirect to setup-location with token
+        const url = new URL('/setup-location', window.location.origin);
+        url.searchParams.append('token', token);
+        window.location.href = url.toString();
+        
+    } catch (error) {
+        console.error('Guest login error:', error);
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+        errorMessage.style.display = 'block';
+        errorText.textContent = 'Unable to continue as guest. Please try again.';
+    }
+}
+
 async function sendPasswordReset() {
     try {
         const emailInput = document.getElementById('email');
