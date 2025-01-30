@@ -271,11 +271,23 @@ async function sendPasswordReset() {
     }
 }
 
+
 async function signup(email, password, userData) {
     try {
         console.log('Starting signup process...');
-        document.getElementById('errorMessage').style.display = 'none';
-        document.getElementById('signupSuccess').style.display = 'none';
+        const errorMessageEl = document.getElementById('errorMessage');
+        const signupSuccessEl = document.getElementById('signupSuccess');
+        const signupFormEl = document.getElementById('signupForm');
+        const signupHeaderEl = document.querySelector('.signup-header');
+        const orDividerEl = document.querySelector('.or-divider');
+        const googleSignupButtonEl = document.getElementById('googleSignupButton');
+        
+        // Get the account type value
+        const accountType = document.getElementById('accountType').value;
+        userData.isDonationCenter = accountType === 'donationCenter';
+
+        if (errorMessageEl) errorMessageEl.style.display = 'none';
+        if (signupSuccessEl) signupSuccessEl.style.display = 'none';
 
         // Create user in Firebase
         const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
@@ -297,25 +309,30 @@ async function signup(email, password, userData) {
             },
             body: JSON.stringify({
                 ...userData,
+                isDonationCenter: accountType === 'donationCenter',
                 idToken: token
             })
         });
 
         if (response.ok) {
-            // Hide all other elements
-            document.querySelector('.signup-header').style.display = 'none';
-            document.querySelector('.toggle-container').style.display = 'none';
-            document.getElementById('signupForm').style.display = 'none';
+            // Hide all signup-related elements
+            if (signupFormEl) signupFormEl.style.display = 'none';
+            if (signupHeaderEl) signupHeaderEl.style.display = 'none';
+            if (orDividerEl) orDividerEl.style.display = 'none';
+            if (googleSignupButtonEl) googleSignupButtonEl.style.display = 'none';
             
-            // Show only success message
-            document.getElementById('signupSuccess').style.display = 'block';
+            // Show success message
+            if (signupSuccessEl) signupSuccessEl.style.display = 'block';
         } else {
             throw new Error('Signup failed');
         }
     } catch (error) {
         console.error('Signup error:', error);
-        document.getElementById('errorMessage').textContent = error.message;
-        document.getElementById('errorMessage').style.display = 'block';
+        const errorMessageEl = document.getElementById('errorMessage');
+        if (errorMessageEl) {
+            errorMessageEl.textContent = error.message;
+            errorMessageEl.style.display = 'block';
+        }
         throw error;
     }
 }
