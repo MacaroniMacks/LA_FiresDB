@@ -28,7 +28,7 @@ async function login(email, password) {
 
             // Fetch user data and determine dashboard route
             try {
-                const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
+                const userDoc = await firebase.firestore().collection('users').doc(userCredential.user.uid).get();
                 const userData = userDoc.data();
 
                 console.log('User document data:', userData);
@@ -271,72 +271,6 @@ async function sendPasswordReset() {
     }
 }
 
-
-async function signup(email, password, userData) {
-    try {
-        console.log('Starting signup process...');
-        const errorMessageEl = document.getElementById('errorMessage');
-        const signupSuccessEl = document.getElementById('signupSuccess');
-        const signupFormEl = document.getElementById('signupForm');
-        const signupHeaderEl = document.querySelector('.signup-header');
-        const orDividerEl = document.querySelector('.or-divider');
-        const googleSignupButtonEl = document.getElementById('googleSignupButton');
-        
-        // Get the account type value
-        const accountType = document.getElementById('accountType').value;
-        userData.isDonationCenter = accountType === 'donationCenter';
-
-        if (errorMessageEl) errorMessageEl.style.display = 'none';
-        if (signupSuccessEl) signupSuccessEl.style.display = 'none';
-
-        // Create user in Firebase
-        const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
-        const user = userCredential.user;
-        
-        // Send verification email without a continue URL
-        await user.sendEmailVerification();
-        console.log('Verification email sent');
-
-        const token = await user.getIdToken();
-        localStorage.setItem('authToken', token);
-        
-        // Send additional data to your backend
-        const response = await fetch('/api/signup', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                ...userData,
-                isDonationCenter: accountType === 'donationCenter',
-                idToken: token
-            })
-        });
-
-        if (response.ok) {
-            // Hide all signup-related elements
-            if (signupFormEl) signupFormEl.style.display = 'none';
-            if (signupHeaderEl) signupHeaderEl.style.display = 'none';
-            if (orDividerEl) orDividerEl.style.display = 'none';
-            if (googleSignupButtonEl) googleSignupButtonEl.style.display = 'none';
-            
-            // Show success message
-            if (signupSuccessEl) signupSuccessEl.style.display = 'block';
-        } else {
-            throw new Error('Signup failed');
-        }
-    } catch (error) {
-        console.error('Signup error:', error);
-        const errorMessageEl = document.getElementById('errorMessage');
-        if (errorMessageEl) {
-            errorMessageEl.textContent = error.message;
-            errorMessageEl.style.display = 'block';
-        }
-        throw error;
-    }
-}
-
 async function resendVerificationEmail() {
     try {
         const user = firebase.auth().currentUser;
@@ -361,4 +295,103 @@ function logout() {
     }).catch((error) => {
         console.error('Logout error:', error);
     });
+}
+// Ensure you are using the admin SDK server-side only (it should not be used client-side)
+
+async function signup(email, password, userData) {
+    const errorMessageEl = document.getElementById('errorMessage');
+    const signupSuccessEl = document.getElementById('signupSuccess');
+    const signupFormEl = document.getElementById('signupForm');
+    const signupHeaderEl = document.querySelector('.signup-header');
+    const orDividerEl = document.querySelector('.or-divider');
+    const googleSignupButtonEl = document.getElementById('googleSignupButton');
+
+    let userCredential = null;
+
+    try {
+        
+        console.log('Attempting to create user with email and password');
+        userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+        console.log('User created successfully:', user);
+
+        // Send email verification
+        await user.sendEmailVerification();
+
+        // Get the ID token
+        const token = await user.getIdToken();
+        localStorage.setItem('authToken', token);
+
+        // Send user data to the backend
+        const response = await fetch('/api/signup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                ...userData,
+                isDonationCenter: userData.accountType === 'donationCenter',
+                idToken: token
+            })
+        });
+
+        if (response.ok) {
+            // Hide form elements and error message, then show success message
+            if (signupFormEl) signupFormEl.style.display = 'none';
+            if (signupHeaderEl) signupHeaderEl.style.display = 'none';
+            if (orDividerEl) orDividerEl.style.display = 'none';
+            if (googleSignupButtonEl) googleSignupButtonEl.style.display = 'none';
+            if (errorMessageEl) errorMessageEl.style.display = 'none';
+            if (signupSuccessEl) signupSuccessEl.style.display = 'block';
+            return true;
+        } else {
+            // Display the default error message
+            if (errorMessageEl) {
+                errorMessageEl.textContent = 'An error occurred during signup. Please try again.';
+                errorMessageEl.style.display = 'block';
+            }
+            return false;
+        }
+    } catch (error) {
+        console.error('Signup error:', error);
+
+        // Handle the "email-already-in-use" error
+        if (error.code === 'auth/email-already-in-use') {
+            try {
+                // Query the users collection where the email field matches the given email
+                const userQuery = await firebase.firestore().collection('users')
+                    .where('email', '==', email)  // Match documents where the email field equals the input email
+                    .get();
+            
+                if (!userQuery.empty) {
+                    // If documents are returned, the email is associated with a regular account
+                    console.log('Document(s) found:', userQuery.docs);
+                    if (errorMessageEl) {
+                        errorMessageEl.textContent = 'An account with this email already exists. Please sign in instead.';
+                        errorMessageEl.style.display = 'block';
+                    }
+                } else {
+                    // If no documents are returned, the email is associated with a Google account
+                    console.log('No document found for this email');
+                    if (errorMessageEl) {
+                        errorMessageEl.textContent = 'This email is already associated with a Google account. Please use "Sign up with Google" instead.';
+                        errorMessageEl.style.display = 'block';
+                    }
+                }
+            } catch (userCheckError) {
+                console.error('Error checking user in Firestore:', userCheckError);
+                if (errorMessageEl) {
+                    errorMessageEl.textContent = 'This email is already associated with a Google account. Please use "Sign up with Google" instead.';
+                    errorMessageEl.style.display = 'block';
+                }
+            }
+        } else {
+            // Display any other error message
+            if (errorMessageEl) {
+                errorMessageEl.textContent = 'An error occurred during signup. Please try again.';
+                errorMessageEl.style.display = 'block';
+            }
+        }
+    }
 }
