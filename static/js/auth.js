@@ -163,24 +163,47 @@ async function googleSignup(userType, centerName = null) {
 async function handleGoogleSignIn() {
     try {
         const provider = new firebase.auth.GoogleAuthProvider();
+        // Force account selection every time
+        provider.setCustomParameters({
+            prompt: 'select_account'
+        });
+        
         const result = await firebase.auth().signInWithPopup(provider);
         
-        // Check if this is a new user
-        if (result.additionalUserInfo.isNewUser) {
-            // Redirect to signup page with the Google account info
-            const user = result.user;
-            // Sign out the user since we want them to complete signup
-            await firebase.auth().signOut();
+        // Get the ID token
+        const token = await result.user.getIdToken(true);
+        localStorage.setItem('authToken', token);
+
+        // Check Firestore for user data
+        const userDoc = await firebase.firestore()
+            .collection('users')
+            .doc(result.user.uid)
+            .get();
             
-            // Redirect to signup with email parameter
-            window.location.href = `/signup?email=${encodeURIComponent(user.email)}&provider=google`;
+        // Check if document doesn't exist OR if isDonationCenter is null
+        const isIncomplete = !userDoc.exists || userDoc.data().isDonationCenter === null;
+
+        if (isIncomplete) {
+            await firebase.auth().signOut();
+            window.location.href = `/signup?email=${encodeURIComponent(result.user.email)}&provider=google`;
         } else {
-            // Existing user - proceed with normal sign in
-            // Your existing post-login redirect logic here
+            // Check if location exists
+            const userData = userDoc.data();
+            if (!userData.location || !userData.location.latitude || !userData.location.longitude) {
+                window.location.href = `/setup-location?token=${token}`;
+                return;
+            }
+
+            // Determine dashboard based on user type, just like in the login function
+            const dashboardUrl = userData.isDonationCenter 
+                ? '/donation-center-dashboard' 
+                : '/neighbor-dashboard';
+
+            // Navigate with token
+            window.location.href = `${dashboardUrl}?token=${token}`;
         }
     } catch (error) {
         console.error("Google sign in error:", error);
-        // Handle errors appropriately
         const errorMessage = document.getElementById('errorText');
         if (errorMessage) {
             errorMessage.textContent = error.message;
