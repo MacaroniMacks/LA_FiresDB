@@ -55,8 +55,8 @@ body {
 /* Filter Section */
 .filter-section {
     padding: 1rem 0;
-    border-bottom: 1px solid #e6e6e6;
-    margin-bottom: 2rem;
+    border-top: 1px solid #e6e6e6;
+    margin-top: 1.5rem;
     display: flex;
     gap: 1rem;
 }
@@ -866,3 +866,20 @@ body {
         transform: scale(0.8);
     }
 }
+
+.flex.flex-col.items-center.justify-center {
+    text-align: center;
+    align-items: center !important;
+}
+
+.flex.items-center.space-x-2.text-gray-400.mb-3 {
+    justify-content: center !important;
+    width: 100%;
+}
+
+#profile-views-card {
+    margin-top: 1rem;
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+}
+

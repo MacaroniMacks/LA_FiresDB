@@ -58,12 +58,9 @@ const COMMON_ITEMS = [
    'Buckets', 'Wire Cutters', 'Pliers', 'Hammers', 'Hand Saws',
    'Measuring Tape', 'Level', 'Screwdrivers', 'Nails', 'Screws',
 
-   // Documentation & Communication
+   // Documents & Communication
    'Document Holders', 'Plastic Sheet Protectors', 
    'Waterproof Document Cases', 'Notebooks', 'Pens',
-   'Emergency Contact Lists', 'Insurance Information', 'Maps',
-   'Legal Documents', 'Medical Records', 'Prescription Lists',
-   'Property Photographs', 'Important Phone Numbers',
 
    // Pet Supplies
    'Pet Food', 'Pet Water Bowls', 'Pet Carriers', 'Pet Medications',
