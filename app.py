@@ -89,7 +89,7 @@ def landing_page():
 
 @app.route('/login')
 def login():
-    return render_template('login.html')    
+    return render_template('landing-page.html')    
 
 @app.route('/signup')
 def signup():

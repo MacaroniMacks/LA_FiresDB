@@ -238,7 +238,6 @@ function generateHoursHTML(hours, centerId) {
 }
 
 async function updateDonationCenters(userData) {
-    
     console.log('Starting updateDonationCenters');
     const radius = parseFloat(document.getElementById('radiusFilter').value);
     
@@ -253,29 +252,36 @@ async function updateDonationCenters(userData) {
 
         let centersCount = 0;
 
-        centersSnapshot.forEach(doc => {
-            const centerData = doc.data();
-            
-            console.log('Full center data:', centerData);
-            console.log('Operating Hours:', centerData.operatingHours);
-            
-            if (!centerData.location) return;
-
-            const distance = calculateDistance(
-                userLocation.latitude,
-                userLocation.longitude,
-                centerData.location.latitude,
-                centerData.location.longitude
-            );
-
-            if (distance <= radius || radius === 999) {
-                centersCount++;
-                const centerCard = document.createElement('div');
-                centerCard.className = 'center-card';
+        const centerPromises = centersSnapshot.docs.map(async (doc) => {
+            try {
+                const centerData = doc.data();
                 
-                const hasAddress = centerData.addressInfo && centerData.addressInfo.street != null;
+                if (!centerData.location) return;
 
-            centerCard.innerHTML = `
+                const distance = calculateDistance(
+                    userLocation.latitude,
+                    userLocation.longitude,
+                    centerData.location.latitude,
+                    centerData.location.longitude
+                );
+
+                if (distance <= radius || radius === 999) {
+                    try {
+                        const centerRef = firebase.firestore().collection('users').doc(doc.id);
+                        await centerRef.update({
+                            profileViews: firebase.firestore.FieldValue.increment(1)
+                        });
+                    } catch (error) {
+                        console.error('Error incrementing profile views:', error);
+                    }
+                        
+                    centersCount++;
+                    const centerCard = document.createElement('div');
+                    centerCard.className = 'center-card';
+                    
+                    const hasAddress = centerData.addressInfo && centerData.addressInfo.street != null;
+
+                    centerCard.innerHTML = `
                 <div class="center-header">
                     <div class="center-main-info">
                         <h3>${centerData.centerName || 'Unnamed Center'}</h3>
@@ -367,11 +373,17 @@ async function updateDonationCenters(userData) {
         </div>
     </div>
 `;
-                highlightMatchingItems(userData, centerData);
-                
-                centersList.appendChild(centerCard);
+                    
+                    highlightMatchingItems(userData, centerData);
+                    
+                    centersList.appendChild(centerCard);
+                }
+            }  catch (error) {
+                console.error('Error processing center:', error);
             }
         });
+
+        await Promise.all(centerPromises);
 
         reorderCenterDivs();
 
@@ -931,9 +943,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const inventoryItems = findElements(inventorySelectors);
         const needItems = findElements(needSelectors);
 
-        console.log('Inventory Items:', inventoryItems);
-        console.log('Need Items:', needItems);
-
         // Highlight inventory items that match user needs
         inventoryItems.forEach(inventoryItem => {
             const inventoryName = inventoryItem.textContent.trim().toLowerCase();
@@ -942,8 +951,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const needName = userNeed?.itemName?.toLowerCase() || '';
                 return needName === inventoryName;
             });
-
-            console.log(`Inventory item ${inventoryName} match:`, match);
 
             if (match) {
                 inventoryItem.classList.add('highlight-match');
@@ -958,8 +965,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const donationName = userItem?.itemName?.toLowerCase() || '';
                 return donationName === needName;
             });
-
-            console.log(`Need item ${needName} match:`, match);
 
             if (match) {
                 needItem.classList.add('highlight-match');
