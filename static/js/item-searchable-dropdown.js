@@ -4,7 +4,7 @@ const COMMON_ITEMS = [
    // Food & Water
    'Canned Goods', 'Non-Perishable Food', 'Rice', 'Pasta', 'Bread', 
    'Cereal', 'Peanut Butter', 'Canned Soup', 'Instant Noodles', 
-   'Protein Bars', 'Baby Food', 'Trail Mix', 'Dried Fruits', 'Crackers',
+   'Protein Bars', 'Trail Mix', 'Dried Fruits', 'Crackers',
    'Bottled Water', 'Sports Drinks', 'Electrolyte Powder', 'Canned Vegetables',
    'Canned Fruit', 'Canned Meat', 'Canned Fish', 'Nuts', 'Granola Bars',
    'Powdered Milk', 'Coffee', 'Tea', 'Sugar', 'Salt', 'Energy Drinks',
