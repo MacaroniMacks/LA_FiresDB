@@ -1,4 +1,6 @@
 serviceAccountKey.json
+config.js
+map-config.js
 /venv
 *.pyc
 __pycache__/
